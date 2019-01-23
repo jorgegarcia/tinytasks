@@ -1,8 +1,2 @@
-bin/
-*.cmake
-CMakeCache.txt
-CMakeFiles/
-gtest/
-lib/
-Makefile
+build/
 
