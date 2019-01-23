@@ -5,5 +5,6 @@ using namespace tinytasks;
 
 TEST(TinyTasksTest, TestLibVersionNumber)
 {
-	ASSERT_STREQ(kTinyTasksLibVersion, "1.0.0");
+	ASSERT_STREQ(tinytasks::GetLibVersion(), "1.0.0");
 }
+
