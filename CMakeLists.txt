@@ -1,5 +1,7 @@
-set(CMAKE_CXX_STANDARD 11)
 cmake_minimum_required(VERSION 2.8.2)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Download and unpack googletest at configure time
 configure_file(CMakeLists.txt.in gtest/googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
@@ -32,7 +34,10 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-# Now simply link against gtest or gtest_main as needed. Eg
-add_executable(bin/tests test/tests.cpp)
-target_link_libraries(bin/tests gtest_main)
+# Add tests and compile runner application
+add_executable(tests test/tests.cpp)
+target_link_libraries(tests gtest_main)
 add_test(NAME example_test COMMAND example)
+
+# Compile example
+add_executable(example src/example.cpp)

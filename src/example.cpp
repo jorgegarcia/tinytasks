@@ -1,8 +1,8 @@
 #include <iostream>
-#include "tinytasks.h"
+#include "../include/tinytasks.h"
 
 int main() 
 {
-    std::cout << "Hello, World!";
+    std::cout << "Hello, World!\n";
     return 0;
 }
