@@ -65,7 +65,7 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
 
     while(!task.HasCompleted())
     {
-        std::cout << "Waiting for task to complete..." << std::endl;
+        std::cout << "Waiting for task to complete...\n";
         sleep(1);
     }
     
@@ -73,3 +73,33 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
     ASSERT_TRUE(task.HasCompleted());
     taskThread.join();
 }
+
+TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
+{
+    bool bPause = false;
+
+    TinyTask task([&bPause]
+    {
+        uint8_t counter = 5;
+        while(counter > 0)
+        {
+            std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+            while(bPause) std::this_thread::sleep_for(std::chrono::seconds{1});
+            --counter;
+        }
+    }, UINT32_MAX);
+
+    std::thread taskThread(&TinyTask::Run, &task);
+    
+    sleep(2);
+    bPause = true;
+    std::cout << "Task paused!\n";
+    sleep(3);
+    bPause = false;
+    std::cout << "0: end of countdown\n";
+    
+    taskThread.join();
+    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_TRUE(task.HasCompleted());
+}
+
