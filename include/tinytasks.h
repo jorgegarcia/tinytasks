@@ -42,10 +42,10 @@ public:
     virtual ~NonCopyableMovable() {}
 
 protected:
-    NonCopyableMovable(const NonCopyableMovable&) = delete;
+    NonCopyableMovable(const NonCopyableMovable&)            = delete;
     NonCopyableMovable& operator=(const NonCopyableMovable&) = delete;
-    NonCopyableMovable(NonCopyableMovable&&) = delete;
-    NonCopyableMovable& operator=(NonCopyableMovable&&) = delete;
+    NonCopyableMovable(NonCopyableMovable&&)                 = delete;
+    NonCopyableMovable& operator=(NonCopyableMovable&&)      = delete;
 };
 
 class TinyTasksPool : public NonCopyableMovable
@@ -95,6 +95,54 @@ private:
     
     uint8_t m_numThreads;
     std::vector<std::thread> m_threads;
+};
+
+class TinyTask : public NonCopyableMovable
+{
+public:
+    explicit TinyTask(std::function<void()> taskLambda, const uint32_t id)
+                    : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda) , m_taskID(id) {}
+    ~TinyTask() {}
+    
+    void Run()
+    {
+        assert(m_taskStatus == TinyTaskStatus::PAUSED);
+        m_taskStatus = TinyTaskStatus::RUNNING;
+        m_taskLambda();
+        m_taskStatus = TinyTaskStatus::COMPLETED;
+    }
+    
+    void SetPaused()
+    {
+        assert(m_taskStatus == TinyTaskStatus::RUNNING);
+        m_taskStatus = TinyTaskStatus::PAUSED;
+    }
+
+    void SetStopped()
+    {
+        assert(m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED);
+        m_taskStatus = TinyTaskStatus::STOPPED;
+    }
+    
+    bool IsPaused()      const { return m_taskStatus == TinyTaskStatus::PAUSED; }
+    bool IsStopped()     const { return m_taskStatus == TinyTaskStatus::STOPPED; }
+    
+    bool HasCompleted()  const { return m_taskStatus == TinyTaskStatus::COMPLETED; }
+    
+    uint32_t GetTaskID() const { return m_taskID; }
+
+private:
+    enum TinyTaskStatus
+    {
+        PAUSED,
+        STOPPED,
+        RUNNING,
+        COMPLETED,
+    };
+    
+    std::atomic<TinyTaskStatus> m_taskStatus;
+    std::function<void()> m_taskLambda;
+    uint32_t m_taskID;
 };
     
 }
