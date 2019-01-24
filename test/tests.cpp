@@ -81,7 +81,8 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
         uint8_t counter = 5;
         while(counter > 0)
         {
-            std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+            std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+            sleep(1);
             --counter;
             task.PauseIfNeeded();
         }
@@ -107,7 +108,8 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
         uint8_t counter = 5;
         while(counter > 0 && !task.HasStopped())
         {
-            std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+            std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+            sleep(1);
             --counter;
         }
     }, UINT32_MAX);
@@ -130,7 +132,8 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
       uint8_t counter = 5;
       while(counter > 0 && !task.HasStopped())
       {
-          std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+          std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+          sleep(1);
           --counter;
           task.PauseIfNeeded();
       }
