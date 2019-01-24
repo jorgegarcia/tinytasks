@@ -117,6 +117,14 @@ public:
     {
         m_taskStatus = isPaused ? TinyTaskStatus::PAUSED : TinyTaskStatus::RUNNING;
     }
+    
+    void PauseIfNeeded() const
+    {
+        while(IsPaused())
+        {
+            std::this_thread::sleep_for(std::chrono::seconds{1});
+        }
+    }
 
     void SetStopped()
     {
