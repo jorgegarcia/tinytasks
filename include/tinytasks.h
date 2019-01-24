@@ -33,6 +33,8 @@ class NonCopyableMovable
 {
 public:
     explicit NonCopyableMovable() {}
+    virtual ~NonCopyableMovable() {}
+
 protected:
     NonCopyableMovable(const NonCopyableMovable&) = delete;
     NonCopyableMovable& operator=(const NonCopyableMovable&) = delete;
