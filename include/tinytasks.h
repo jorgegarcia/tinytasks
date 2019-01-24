@@ -75,6 +75,8 @@ public:
 private:
     void CreateThreads()
     {
+        assert(m_threads.size() == 0);
+        
         for(uint8_t threadIndex = 0; threadIndex < m_numThreads; ++threadIndex)
         {
             std::unique_ptr<std::thread> newThread(new std::thread([]{}));
