@@ -108,14 +108,30 @@ public:
     void Run()
     {
         assert(m_taskStatus == TinyTaskStatus::PAUSED);
+
         m_taskStatus = TinyTaskStatus::RUNNING;
         m_taskLambda();
-        m_taskStatus = TinyTaskStatus::COMPLETED;
+        
+        if(!HasStopped())
+            m_taskStatus = TinyTaskStatus::COMPLETED;
     }
     
-    void SetPaused(bool isPaused)
+    void Pause()
     {
-        m_taskStatus = isPaused ? TinyTaskStatus::PAUSED : TinyTaskStatus::RUNNING;
+        assert(m_taskStatus == TinyTaskStatus::RUNNING);
+        m_taskStatus = TinyTaskStatus::PAUSED;
+    }
+    
+    void Resume()
+    {
+        assert(m_taskStatus == TinyTaskStatus::PAUSED);
+        m_taskStatus = TinyTaskStatus::RUNNING;
+    }
+
+    void Stop()
+    {
+        assert(m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED);
+        m_taskStatus = TinyTaskStatus::STOPPED;
     }
     
     void PauseIfNeeded() const
@@ -125,16 +141,10 @@ public:
             std::this_thread::sleep_for(std::chrono::seconds{1});
         }
     }
-
-    void SetStopped()
-    {
-        assert(m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED);
-        m_taskStatus = TinyTaskStatus::STOPPED;
-    }
     
     bool IsPaused()      const { return m_taskStatus == TinyTaskStatus::PAUSED; }
-    bool IsStopped()     const { return m_taskStatus == TinyTaskStatus::STOPPED; }
     
+    bool HasStopped()    const { return m_taskStatus == TinyTaskStatus::STOPPED; }
     bool HasCompleted()  const { return m_taskStatus == TinyTaskStatus::COMPLETED; }
     
     uint32_t GetTaskID() const { return m_taskID; }

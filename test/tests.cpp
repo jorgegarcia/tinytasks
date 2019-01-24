@@ -60,7 +60,7 @@ TEST(TinyTasksTest, TestCreateTinyTask)
 
 TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
 {
-    TinyTask task([]{ uint8_t counter = 0; while(counter < 5) { sleep(1); ++counter; } }, UINT32_MAX);
+    TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT32_MAX);
     std::thread taskThread(&TinyTask::Run, &task);
 
     while(!task.HasCompleted())
@@ -90,13 +90,61 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
     std::thread taskThread(&TinyTask::Run, &task);
     
     sleep(2);
-    task.SetPaused(true);
+    task.Pause();
     std::cout << "Task paused!\n";
-    sleep(3);
-    task.SetPaused(false);
+    sleep(2);
+    task.Resume();
     
     taskThread.join();
     ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
+TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
+{
+    TinyTask task([&task]
+    {
+        uint8_t counter = 5;
+        while(counter > 0 && !task.HasStopped())
+        {
+            std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+            --counter;
+        }
+    }, UINT32_MAX);
+
+    std::thread taskThread(&TinyTask::Run, &task);
+
+    sleep(3);
+    task.Stop();
+    std::cout << "Task stopped!\n";
+
+    taskThread.join();
+    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_TRUE(task.HasStopped());
+}
+
+TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
+{
+    TinyTask task([&task]
+    {
+      uint8_t counter = 5;
+      while(counter > 0 && !task.HasStopped())
+      {
+          std::cout << "Task count down: " << std::to_string(counter) << std::endl; sleep(1);
+          --counter;
+          task.PauseIfNeeded();
+      }
+    }, UINT32_MAX);
+
+    std::thread taskThread(&TinyTask::Run, &task);
+
+    sleep(3);
+    task.Pause();
+    std::cout << "Task paused!\n";
+    task.Stop();
+    std::cout << "Task stopped!\n";
+
+    taskThread.join();
+    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_TRUE(task.HasStopped());
+}
