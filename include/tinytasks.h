@@ -44,7 +44,8 @@ class TinyTasksPool : public NonCopyableMovable
 {
 public:
     explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool) {}
-    TinyTasksPool(uint8_t numThreads) : m_numThreads(numThreads) {}
+    TinyTasksPool(uint8_t numThreads) : m_numThreads(numThreads) { assert(m_numThreads > 0); }
+    ~TinyTasksPool() {}
     
     uint8_t GetNumThreads() const { return m_numThreads; }
 
