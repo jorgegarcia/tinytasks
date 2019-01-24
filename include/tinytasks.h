@@ -2,6 +2,7 @@
 #define __TINYTASKS_H__
 
 #include <cassert>
+#include <memory>
 #include <string>
 #include <vector>
 #include <atomic>
@@ -67,11 +68,6 @@ public:
     {
         assert(m_threads.size() > 0);
         StopAllThreads();
-        
-        for(auto& aThread : m_threads)
-        {
-            TT_SAFE_DELETE(aThread);
-        }
     }
     
     uint8_t GetNumThreads() const { return m_numThreads; }
@@ -81,21 +77,21 @@ private:
     {
         for(uint8_t threadIndex = 0; threadIndex < m_numThreads; ++threadIndex)
         {
-            std::thread* newThread = new std::thread([]{});
-            m_threads.push_back(newThread);
+            std::unique_ptr<std::thread> newThread(new std::thread([]{}));
+            m_threads.push_back(std::move(newThread));
         }
     }
     
     void StopAllThreads()
     {
-        for(auto* aThread : m_threads)
+        for(auto& aThread : m_threads)
         {
             aThread->join();
         }
     }
     
     uint8_t m_numThreads;
-    std::vector<std::thread*> m_threads;
+    std::vector<std::unique_ptr<std::thread>> m_threads;
 };
     
 }
