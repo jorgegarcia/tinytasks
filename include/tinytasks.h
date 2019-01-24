@@ -76,10 +76,11 @@ private:
     void CreateThreads()
     {
         assert(m_threads.size() == 0);
+        m_threads.reserve(m_numThreads);
         
         for(uint8_t threadIndex = 0; threadIndex < m_numThreads; ++threadIndex)
         {
-            std::unique_ptr<std::thread> newThread(new std::thread([]{}));
+            std::thread newThread([]{});
             m_threads.push_back(std::move(newThread));
         }
     }
@@ -88,12 +89,12 @@ private:
     {
         for(auto& aThread : m_threads)
         {
-            aThread->join();
+            aThread.join();
         }
     }
     
     uint8_t m_numThreads;
-    std::vector<std::unique_ptr<std::thread>> m_threads;
+    std::vector<std::thread> m_threads;
 };
     
 }
