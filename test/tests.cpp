@@ -30,3 +30,21 @@ TEST(TinyTasksTest, TestCreateTinyTasksPoolNonDefaultMax)
     
     ASSERT_EQ(tinyTasksPool.GetNumThreads(), numThreads);
 }
+
+class TinyTasksPoolTest : public testing::Test
+{
+public:
+    TinyTasksPoolTest() : m_tinyTasksPool(8) {}
+
+protected:
+    void SetUp() override {}
+    
+    void TearDown() override {}
+    
+    TinyTasksPool m_tinyTasksPool;
+};
+
+TEST_F(TinyTasksPoolTest, TestCreateNewTaskInPool)
+{
+    ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
+}
