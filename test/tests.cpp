@@ -96,7 +96,6 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
     std::cout << "Task paused!\n";
     sleep(3);
     bPause = false;
-    std::cout << "0: end of countdown\n";
     
     taskThread.join();
     ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
