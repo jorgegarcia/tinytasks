@@ -65,6 +65,7 @@ public:
     
     ~TinyTasksPool()
     {
+        assert(m_threads.size() > 0);
         StopAllThreads();
         
         for(auto& aThread : m_threads)
@@ -87,7 +88,7 @@ private:
     
     void StopAllThreads()
     {
-        for(auto& aThread : m_threads)
+        for(auto* aThread : m_threads)
         {
             aThread->join();
         }
