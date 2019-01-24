@@ -112,10 +112,9 @@ public:
         m_taskStatus = TinyTaskStatus::COMPLETED;
     }
     
-    void SetPaused()
+    void SetPaused(bool isPaused)
     {
-        assert(m_taskStatus == TinyTaskStatus::RUNNING);
-        m_taskStatus = TinyTaskStatus::PAUSED;
+        m_taskStatus = isPaused ? TinyTaskStatus::PAUSED : TinyTaskStatus::RUNNING;
     }
 
     void SetStopped()
