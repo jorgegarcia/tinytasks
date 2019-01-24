@@ -37,7 +37,6 @@ endif()
 # Add tests and compile runner application
 add_executable(tests test/tests.cpp include/tinytasks.h)
 target_link_libraries(tests gtest_main)
-add_test(NAME TinyTasksTest COMMAND TestLibVersionNumber)
 
 # Compile example
 add_executable(example src/example.cpp include/tinytasks.h)
