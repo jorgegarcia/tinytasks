@@ -3,7 +3,12 @@
 
 #include <cassert>
 #include <string>
+#include <vector>
 #include <atomic>
+#include <thread>
+
+#define TT_SAFE_DELETE(p) if(p) delete p; p = nullptr;
+#define TT_SAFE_DELETE_ARRAY(p) if(p) delete[] p; p = nullptr;
 
 #define TINYTASKS_VERSION_MAJOR 1
 #define TINYTASKS_VERSION_MINOR 0
@@ -45,14 +50,51 @@ protected:
 class TinyTasksPool : public NonCopyableMovable
 {
 public:
-    explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool) {}
-    TinyTasksPool(uint8_t numThreads) : m_numThreads(numThreads) { assert(m_numThreads > 0); }
-    ~TinyTasksPool() {}
+    explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool)
+    {
+        m_threads.reserve(m_numThreads);
+        CreateThreads();
+    }
+    
+    TinyTasksPool(uint8_t numThreads) : m_numThreads(numThreads)
+    {
+        assert(m_numThreads > 0);
+        m_threads.reserve(m_numThreads);
+        CreateThreads();
+    }
+    
+    ~TinyTasksPool()
+    {
+        StopAllThreads();
+        
+        for(auto& aThread : m_threads)
+        {
+            TT_SAFE_DELETE(aThread);
+        }
+    }
     
     uint8_t GetNumThreads() const { return m_numThreads; }
 
 private:
+    void CreateThreads()
+    {
+        for(uint8_t threadIndex = 0; threadIndex < m_numThreads; ++threadIndex)
+        {
+            std::thread* newThread = new std::thread([]{});
+            m_threads.push_back(newThread);
+        }
+    }
+    
+    void StopAllThreads()
+    {
+        for(auto& aThread : m_threads)
+        {
+            aThread->join();
+        }
+    }
+    
     uint8_t m_numThreads;
+    std::vector<std::thread*> m_threads;
 };
     
 }
