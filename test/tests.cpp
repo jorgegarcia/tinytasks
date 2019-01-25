@@ -5,7 +5,7 @@ using namespace tinytasks;
 
 TEST(TinyTasksTest, TestLibVersionNumber)
 {
-    ASSERT_STREQ(tinytasks::version(), "1.0.0");
+    ASSERT_STREQ(::version(), "1.0.0");
 }
 
 TEST(TinyTasksTest, TestCreateTinyTasksPoolDefault)
@@ -150,4 +150,31 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
     taskThread.join();
     ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
     ASSERT_TRUE(task.HasStopped());
+}
+
+TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
+{
+    TinyTask task([&task]
+    {
+        uint8_t counter = 0;
+        uint8_t maxCount = 10;
+        while(counter < maxCount)
+        {
+            task.SetProgress(static_cast<float>(counter)/static_cast<float>(maxCount) * 100.0f);
+            sleep(1);
+            ++counter;
+        }
+    }, UINT32_MAX);
+    
+    std::thread taskThread(&TinyTask::Run, &task);
+    
+    while(!task.HasCompleted())
+    {
+        std::cout << "Task progress: " << task.GetProgress() << " %\n";
+        sleep(1);
+    }
+    
+    taskThread.join();
+    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_TRUE(task.HasCompleted());
 }

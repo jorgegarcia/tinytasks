@@ -94,15 +94,15 @@ private:
         }
     }
     
-    uint8_t m_numThreads;
-    std::vector<std::thread> m_threads;
+    uint8_t                     m_numThreads;
+    std::vector<std::thread>    m_threads;
 };
 
 class TinyTask : public NonCopyableMovable
 {
 public:
     explicit TinyTask(std::function<void()> taskLambda, const uint32_t id)
-                    : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda) , m_taskID(id) {}
+                    : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda) , m_taskID(id), m_taskProgress(0.0f) {}
     ~TinyTask() {}
     
     void Run()
@@ -148,6 +148,9 @@ public:
     bool HasCompleted()  const { return m_taskStatus == TinyTaskStatus::COMPLETED; }
     
     uint32_t GetTaskID() const { return m_taskID; }
+    
+    void SetProgress(const float progress) { m_taskProgress = progress; }
+    float GetProgress()  const { return m_taskProgress; }
 
 private:
     enum TinyTaskStatus
@@ -159,8 +162,9 @@ private:
     };
     
     std::atomic<TinyTaskStatus> m_taskStatus;
-    std::function<void()> m_taskLambda;
-    uint32_t m_taskID;
+    std::function<void()>       m_taskLambda;
+    uint32_t                    m_taskID;
+    std::atomic<float>          m_taskProgress;
 };
     
 }
