@@ -181,4 +181,28 @@ protected:
 TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
+    
+    uint32_t taskID = m_tinyTasksPool.CreateTask([]{ std::cout << "Running task from pool..\n"; });
+    ASSERT_EQ(taskID, 0);
+    uint32_t taskID2 = m_tinyTasksPool.CreateTask([]{ std::cout << "Running task from pool..\n"; });
+    ASSERT_EQ(taskID2, 1);
+}
+
+std::mutex stdOutLock;
+
+void StdOutThreadSafe(const char* message, const uint32_t value)
+{
+    std::lock_guard<std::mutex> lock(stdOutLock);
+    std::cout << message << value << std::endl;
+}
+
+TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
+{
+    ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
+    
+    for(uint16_t currentTaskID = 0; currentTaskID < constants::kMaxNumTasksInPool; ++currentTaskID)
+    {
+        uint16_t taskID = m_tinyTasksPool.CreateTask([currentTaskID]{ StdOutThreadSafe("Running Task ID: ", currentTaskID); });
+        ASSERT_EQ(taskID, currentTaskID);
+    }
 }
