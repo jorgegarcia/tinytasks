@@ -131,18 +131,16 @@ class TinyTasksPool : public NonCopyableMovable
 public:
     explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool), m_nextFreeTaskId(0)
     {
-        m_threads.reserve(m_numThreads);
         m_threadsTasks.reserve(m_numThreads);
-        CreateThreads();
+        InitThreads();
         InitThreadsTasks();
     }
     
     TinyTasksPool(uint8_t numThreads) : m_numThreads(numThreads), m_nextFreeTaskId(0)
     {
         assert(m_numThreads > 0);
-        m_threads.reserve(m_numThreads);
         m_threadsTasks.reserve(m_numThreads);
-        CreateThreads();
+        InitThreads();
         InitThreadsTasks();
     }
     
@@ -171,17 +169,18 @@ public:
                 TinyTask* newTask = new TinyTask(taskLambda, m_nextFreeTaskId);
                 m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
                 m_threadsTasks[currentThreadIndex] = newTask;
-                std::thread newTaskThread(&TinyTask::Run, newTask);
                 currentThread.join();
+                std::thread newTaskThread(&TinyTask::Run, newTask);
                 currentThread = std::move(newTaskThread);
                 return m_nextFreeTaskId++;
             }
             
             currentThreadIndex++;
         }
-        
+
         //If there is no space in the thread vector, create new task and queque it
         TinyTask* newTask = new TinyTask(taskLambda, m_nextFreeTaskId);
+        m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
         m_pendingTasks.push(newTask);
 
         return m_nextFreeTaskId++;
@@ -190,7 +189,7 @@ public:
     uint8_t GetNumThreads() const { return m_numThreads; }
     
 private:
-    void CreateThreads()
+    void InitThreads()
     {
         assert(m_threads.size() == 0);
         m_threads.reserve(m_numThreads);
@@ -240,7 +239,6 @@ private:
     std::queue<TinyTask*>           m_pendingTasks;
     std::map<uint16_t, TinyTask*>   m_tasks;
     uint16_t                        m_nextFreeTaskId;
-    
     std::mutex                      m_createTaskMutex;
 };
     
