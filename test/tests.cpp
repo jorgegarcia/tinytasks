@@ -3,6 +3,14 @@
 
 using namespace tinytasks;
 
+std::mutex stdOutLock;
+
+void StdOutThreadSafe(const std::string& message)
+{
+    std::lock_guard<std::mutex> lock(stdOutLock);
+    std::cout << message << std::endl;
+}
+
 TEST(TinyTasksTest, TestLibVersionNumber)
 {
     ASSERT_STREQ(::version(), "1.0.0");
@@ -10,10 +18,10 @@ TEST(TinyTasksTest, TestLibVersionNumber)
 
 TEST(TinyTasksTest, TestCreateTinyTask)
 {
-    TinyTask task([]{ std::cout << "Running tiny task..." << std::endl; }, UINT32_MAX);
+    TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, UINT32_MAX);
     task.Run();
     
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
@@ -24,11 +32,11 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
     
     while(!task.HasCompleted())
     {
-        std::cout << "Waiting for task to complete...\n";
+        StdOutThreadSafe("Waiting for task to complete...");
         sleep(1);
     }
     
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
     taskThread.join();
 }
@@ -41,7 +49,7 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
         
         while(counter > 0)
         {
-            std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+            StdOutThreadSafe("Task count down: " + std::to_string(counter));
             sleep(1);
             --counter;
             task.PauseIfNeeded();
@@ -52,12 +60,12 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
     
     sleep(2);
     task.Pause();
-    std::cout << "Task paused!\n";
+    StdOutThreadSafe("Task paused!");
     sleep(2);
     task.Resume();
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
@@ -69,20 +77,20 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
         
         while(counter > 0 && !task.HasStopped())
         {
-            std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+            StdOutThreadSafe("Task count down: " + std::to_string(counter));
             sleep(1);
             --counter;
         }
-    }, UINT32_MAX);
+    }, UINT16_MAX);
     
     std::thread taskThread(&TinyTask::Run, &task);
     
     sleep(3);
     task.Stop();
-    std::cout << "Task stopped!\n";
+    StdOutThreadSafe("Task stopped!\n");
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasStopped());
 }
 
@@ -94,23 +102,23 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
         
         while(counter > 0 && !task.HasStopped())
         {
-            std::cout << "Task count down: " << std::to_string(counter) << std::endl;
+            StdOutThreadSafe("Task count down: " + std::to_string(counter));
             sleep(1);
             --counter;
             task.PauseIfNeeded();
         }
-    }, UINT32_MAX);
+    }, UINT16_MAX);
     
     std::thread taskThread(&TinyTask::Run, &task);
     
     sleep(3);
     task.Pause();
-    std::cout << "Task paused!\n";
+    StdOutThreadSafe("Task paused!");
     task.Stop();
-    std::cout << "Task stopped!\n";
+    StdOutThreadSafe("Task stopped!");
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasStopped());
 }
 
@@ -123,22 +131,24 @@ TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
 
         while(counter < maxCount)
         {
-            task.SetProgress(static_cast<float>(counter)/static_cast<float>(maxCount) * 100.0f);
+            task.SetProgress(static_cast<float>(counter) / static_cast<float>(maxCount) * 100.0f);
             sleep(1);
             ++counter;
         }
-    }, UINT32_MAX);
+    }, UINT16_MAX);
     
     std::thread taskThread(&TinyTask::Run, &task);
     
     while(!task.HasCompleted())
     {
-        std::cout << "Task progress: " << task.GetProgress() << " %\n";
+        std::string progress(std::to_string(task.GetProgress()));
+        progress.resize(4);
+        StdOutThreadSafe("Task progress: " + progress + " %");
         sleep(1);
     }
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT32_MAX);
+    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
@@ -182,18 +192,10 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
     
-    uint32_t taskID = m_tinyTasksPool.CreateTask([]{ std::cout << "Running task from pool..\n"; });
+    uint32_t taskID = m_tinyTasksPool.CreateTask([]{ StdOutThreadSafe("Running task from pool.."); });
     ASSERT_EQ(taskID, 0);
-    uint32_t taskID2 = m_tinyTasksPool.CreateTask([]{ std::cout << "Running task from pool..\n"; });
+    uint32_t taskID2 = m_tinyTasksPool.CreateTask([]{ StdOutThreadSafe("Running task from pool.."); });
     ASSERT_EQ(taskID2, 1);
-}
-
-std::mutex stdOutLock;
-
-void StdOutThreadSafe(const char* message, const uint32_t value)
-{
-    std::lock_guard<std::mutex> lock(stdOutLock);
-    std::cout << message << value << std::endl;
 }
 
 TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
@@ -202,7 +204,7 @@ TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
     
     for(uint16_t currentTaskID = 0; currentTaskID < constants::kMaxNumTasksInPool; ++currentTaskID)
     {
-        uint16_t taskID = m_tinyTasksPool.CreateTask([currentTaskID]{ StdOutThreadSafe("Running Task ID: ", currentTaskID); });
+        uint16_t taskID = m_tinyTasksPool.CreateTask([currentTaskID]{ StdOutThreadSafe("Running Task ID: " + std::to_string(currentTaskID)); });
         ASSERT_EQ(taskID, currentTaskID);
     }
 }
