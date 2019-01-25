@@ -56,23 +56,28 @@ protected:
 class TinyTask : public NonCopyableMovable
 {
 public:
-    explicit TinyTask(std::function<void()> taskLambda, const uint16_t id)
-                    : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda) , m_taskID(id), m_taskProgress(0.0f)
+    TinyTask(std::function<void()> taskLambda, const uint16_t id)
+            : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda), m_taskID(id), m_taskProgress(0.0f), m_taskStopped(false)
     {
         assert(m_taskLambda && "Task requires a valid (non-nullptr) lambda");
+    }
+    
+    TinyTask(const uint16_t id)
+            : m_taskStatus(TinyTaskStatus::PAUSED), m_taskID(id), m_taskProgress(0.0f), m_taskStopped(false)
+    {
     }
 
     ~TinyTask() {}
     
     void Run()
     {
-        assert(m_taskStatus == TinyTaskStatus::PAUSED);
-
         m_taskStatus = TinyTaskStatus::RUNNING;
         m_taskLambda();
         
         if(!HasStopped())
             m_taskStatus = TinyTaskStatus::COMPLETED;
+        else
+            m_taskStopped = true;
     }
     
     void Pause()
@@ -91,6 +96,7 @@ public:
     {
         assert(m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED);
         m_taskStatus = TinyTaskStatus::STOPPED;
+        while(!m_taskStopped) {}
     }
     
     void PauseIfNeeded() const
@@ -110,6 +116,7 @@ public:
     
     void SetProgress(const float progress) { m_taskProgress = progress; }
     float GetProgress()  const { return m_taskProgress; }
+    void SetLambda(std::function<void()> newLambda) { m_taskLambda = std::move(newLambda); }
 
 private:
     enum TinyTaskStatus
@@ -124,11 +131,19 @@ private:
     std::function<void()>       m_taskLambda;
     uint16_t                    m_taskID;
     std::atomic<float>          m_taskProgress;
+    std::atomic<bool>           m_taskStopped;
 };
 
 class TinyTasksPool : public NonCopyableMovable
 {
 public:
+    enum TTPResult
+    {
+        SUCCEDED,
+        TASK_NOT_FOUND,
+        ERROR,
+    };
+    
     explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool), m_nextFreeTaskId(0)
     {
         m_threadsTasks.reserve(m_numThreads);
@@ -155,23 +170,20 @@ public:
         DeleteTasksAllocations();
     }
     
-    uint16_t CreateTask(std::function<void()> taskLambda)
+    uint16_t CreateTask()
     {
         assert(m_nextFreeTaskId < constants::kMaxNumTasksInPool && "Can't create more tasks. Ran out of IDs");
 
-        std::lock_guard<std::mutex> lock(m_createTaskMutex);
+        std::lock_guard<std::mutex> lock(m_poolDataMutex);
 
         uint8_t currentThreadIndex = 0;
-        for(auto& currentThread : m_threads)
+        for(auto& currentThreadTask : m_threadsTasks)
         {
             if(m_threadsTasks[currentThreadIndex] == nullptr)
             {
-                TinyTask* newTask = new TinyTask(taskLambda, m_nextFreeTaskId);
+                TinyTask* newTask = new TinyTask(m_nextFreeTaskId);
                 m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
-                m_threadsTasks[currentThreadIndex] = newTask;
-                currentThread.join();
-                std::thread newTaskThread(&TinyTask::Run, newTask);
-                currentThread = std::move(newTaskThread);
+                currentThreadTask = newTask;
                 return m_nextFreeTaskId++;
             }
             
@@ -179,14 +191,44 @@ public:
         }
 
         //If there is no space in the thread vector, create new task and queque it
-        TinyTask* newTask = new TinyTask(taskLambda, m_nextFreeTaskId);
+        TinyTask* newTask = new TinyTask(m_nextFreeTaskId);
         m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
         m_pendingTasks.push(newTask);
 
         return m_nextFreeTaskId++;
     }
     
-    uint8_t GetNumThreads() const { return m_numThreads; }
+    TTPResult SetNewLambdaForTask(const uint16_t taskID, std::function<void()> newLambda)
+    {
+        std::lock_guard<std::mutex> lock(m_poolDataMutex);
+        
+        uint8_t currentThreadIndex = 0;
+        for(auto& threadTask : m_threadsTasks)
+        {
+            if(threadTask->GetTaskID() == taskID)
+            {
+                threadTask->SetLambda(newLambda);
+                m_threads[currentThreadIndex].join();
+                std::thread newTaskThread(&TinyTask::Run, threadTask);
+                m_threads[currentThreadIndex] = std::move(newTaskThread);
+                return TTPResult::SUCCEDED;
+            }
+            
+            currentThreadIndex++;
+        }
+        
+        auto task = m_tasks.find(taskID);
+        if(task->second)
+        {
+            task->second->SetLambda(newLambda);
+            return TTPResult::SUCCEDED;
+        }
+    
+        return TTPResult::TASK_NOT_FOUND;
+    }
+    
+    uint8_t     GetNumThreads() const { return m_numThreads; }
+    TinyTask*   GetTask(const uint16_t taskID) const { return m_tasks.find(taskID)->second; }
     
 private:
     void InitThreads()
@@ -239,7 +281,7 @@ private:
     std::queue<TinyTask*>           m_pendingTasks;
     std::map<uint16_t, TinyTask*>   m_tasks;
     uint16_t                        m_nextFreeTaskId;
-    std::mutex                      m_createTaskMutex;
+    std::mutex                      m_poolDataMutex;
 };
     
 }
