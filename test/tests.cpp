@@ -75,7 +75,7 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
     {
         uint8_t counter = 5;
         
-        while(counter > 0 && !task.HasStopped())
+        while(counter > 0 && !task.IsStopping())
         {
             StdOutThreadSafe("Task count down: " + std::to_string(counter));
             sleep(1);
@@ -87,7 +87,8 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
     
     sleep(3);
     task.Stop();
-    StdOutThreadSafe("Task stopped!\n");
+    while(!task.HasStopped()) {}
+    StdOutThreadSafe("Task stopped!");
     
     taskThread.join();
     ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
@@ -100,7 +101,7 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
     {
         uint8_t counter = 5;
         
-        while(counter > 0 && !task.HasStopped())
+        while(counter > 0 && !task.IsStopping())
         {
             StdOutThreadSafe("Task count down: " + std::to_string(counter));
             sleep(1);
@@ -115,6 +116,7 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
     task.Pause();
     StdOutThreadSafe("Task paused!");
     task.Stop();
+    while(!task.HasStopped());
     StdOutThreadSafe("Task stopped!");
     
     taskThread.join();
@@ -239,7 +241,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
                                                  
     TinyTasksPool::TTPResult result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
     {
-        while(!task->HasStopped())
+        while(!task->IsStopping())
         {
             StdOutThreadSafe("Running task from pool..");
             sleep(1);
@@ -250,6 +252,8 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
     
     sleep(3);
     task->Stop();
+    while(!task->HasStopped()) {}
+    StdOutThreadSafe("Task stopped!");
 
     ASSERT_TRUE(task->HasStopped());
 }
@@ -263,7 +267,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
     
     TinyTasksPool::TTPResult result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
     {
-        while(!task->HasStopped())
+        while(!task->IsStopping())
         {
             StdOutThreadSafe("Running task from pool..");
             sleep(1);
@@ -281,6 +285,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
     StdOutThreadSafe("Task resumed...");
     sleep(3);
     task->Stop();
+    while(!task->HasStopped()) {}
     
     ASSERT_TRUE(task->HasStopped());
 }
