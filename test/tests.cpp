@@ -21,7 +21,7 @@ TEST(TinyTasksTest, TestCreateTinyTask)
     TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, UINT32_MAX);
     task.Run();
     
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
@@ -36,7 +36,7 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
         sleep(1);
     }
     
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
     taskThread.join();
 }
@@ -65,7 +65,7 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
     task.Resume();
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 
@@ -91,7 +91,7 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
     StdOutThreadSafe("Task stopped!");
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasStopped());
 }
 
@@ -120,7 +120,7 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
     StdOutThreadSafe("Task stopped!");
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasStopped());
 }
 
@@ -150,7 +150,7 @@ TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
     }
     
     taskThread.join();
-    ASSERT_EQ(task.GetTaskID(), UINT16_MAX);
+    ASSERT_EQ(task.GetID(), UINT16_MAX);
     ASSERT_TRUE(task.HasCompleted());
 }
 

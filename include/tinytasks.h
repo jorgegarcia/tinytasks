@@ -56,13 +56,13 @@ class TinyTask : public NonCopyableMovable
 {
 public:
     TinyTask(std::function<void()> taskLambda, const uint16_t id)
-            : m_taskStatus(TinyTaskStatus::PAUSED), m_taskLambda(taskLambda), m_taskID(id), m_taskProgress(0.0f), m_taskIsStopping(false)
+            : m_status(Status::PAUSED), m_lambda(taskLambda), m_ID(id), m_progress(0.0f), m_isStopping(false)
     {
-        assert(m_taskLambda && "Task requires a valid (non-nullptr) lambda");
+        assert(m_lambda && "Task requires a valid (non-nullptr) lambda");
     }
     
     TinyTask(const uint16_t id)
-            : m_taskStatus(TinyTaskStatus::PAUSED), m_taskID(id), m_taskProgress(0.0f), m_taskIsStopping(false)
+            : m_status(Status::PAUSED), m_ID(id), m_progress(0.0f), m_isStopping(false)
     {
     }
 
@@ -70,37 +70,37 @@ public:
     
     void Run()
     {
-        m_taskStatus = TinyTaskStatus::RUNNING;
-        m_taskLambda();
+        m_status = Status::RUNNING;
+        m_lambda();
         
         if(IsStopping())
         {
-            m_taskIsStopping = false;
-            m_taskStatus = TinyTaskStatus::STOPPED;
+            m_isStopping = false;
+            m_status = Status::STOPPED;
             return;
         }
 
-        m_taskStatus = TinyTaskStatus::COMPLETED;
+        m_status = Status::COMPLETED;
     }
     
     void Pause()
     {
-        assert(m_taskStatus == TinyTaskStatus::RUNNING && "Can't pause task as its state has changed");
-        m_taskStatus = TinyTaskStatus::PAUSED;
+        assert(m_status == Status::RUNNING && "Can't pause task as its state has changed");
+        m_status = Status::PAUSED;
     }
     
     void Resume()
     {
-        assert(m_taskStatus == TinyTaskStatus::PAUSED && "Can't resume task as its state has changed");
-        m_taskStatus = TinyTaskStatus::RUNNING;
+        assert(m_status == Status::PAUSED && "Can't resume task as its state has changed");
+        m_status = Status::RUNNING;
     }
 
     void Stop()
     {
-        assert((m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED) && "Can't stop task as its state has changed");
+        assert((m_status == Status::RUNNING || m_status == Status::PAUSED) && "Can't stop task as its state has changed");
 
         if(IsPaused()) Resume();
-        m_taskIsStopping = true;
+        m_isStopping = true;
     }
     
     void PauseIfNeeded() const
@@ -111,22 +111,7 @@ public:
         }
     }
     
-    uint16_t GetTaskID() const { return m_taskID; }
-    
-    bool IsRunning()     const { return m_taskStatus == TinyTaskStatus::RUNNING; }
-    bool IsPaused()      const { return m_taskStatus == TinyTaskStatus::PAUSED; }
-    bool IsStopping()    const { return m_taskIsStopping; }
-    
-    bool HasStopped()    const { return m_taskStatus == TinyTaskStatus::STOPPED; }
-    bool HasCompleted()  const { return m_taskStatus == TinyTaskStatus::COMPLETED; }
-    
-    void  SetProgress(const float progress) { m_taskProgress = progress; }
-    float GetProgress()  const              { return m_taskProgress; }
-
-    void SetLambda(std::function<void()> newLambda) { m_taskLambda = std::move(newLambda); }
-
-private:
-    enum TinyTaskStatus
+    enum Status
     {
         PAUSED,
         STOPPED,
@@ -134,11 +119,27 @@ private:
         COMPLETED,
     };
     
-    std::atomic<TinyTaskStatus> m_taskStatus;
-    std::function<void()>       m_taskLambda;
-    uint16_t                    m_taskID;
-    std::atomic<float>          m_taskProgress;
-    std::atomic<bool>           m_taskIsStopping;
+    uint16_t GetID()    const { return m_ID; }
+    Status GetStatus()  const { return m_status; }
+    
+    bool IsRunning()    const { return m_status == Status::RUNNING; }
+    bool IsPaused()     const { return m_status == Status::PAUSED; }
+    bool IsStopping()   const { return m_isStopping; }
+    
+    bool HasStopped()   const { return m_status == Status::STOPPED; }
+    bool HasCompleted() const { return m_status == Status::COMPLETED; }
+    
+    void  SetProgress(const float progress) { m_progress = progress; }
+    float GetProgress() const               { return m_progress; }
+
+    void SetLambda(std::function<void()> newLambda) { m_lambda = std::move(newLambda); }
+
+private:
+    std::atomic<Status>         m_status;
+    std::function<void()>       m_lambda;
+    uint16_t                    m_ID;
+    std::atomic<float>          m_progress;
+    std::atomic<bool>           m_isStopping;
 };
 
 class TinyTasksPool : public NonCopyableMovable
@@ -212,7 +213,7 @@ public:
         uint8_t currentThreadIndex = 0;
         for(auto& threadTask : m_threadsTasks)
         {
-            if(threadTask->GetTaskID() == taskID)
+            if(threadTask->GetID() == taskID)
             {
                 threadTask->SetLambda(newLambda);
                 m_threads[currentThreadIndex].join();
