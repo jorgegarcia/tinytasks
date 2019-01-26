@@ -135,11 +135,11 @@ public:
     void SetLambda(std::function<void()> newLambda) { m_lambda = std::move(newLambda); }
 
 private:
-    std::atomic<Status>         m_status;
-    std::function<void()>       m_lambda;
-    uint16_t                    m_ID;
-    std::atomic<float>          m_progress;
-    std::atomic<bool>           m_isStopping;
+    std::atomic<Status>     m_status;
+    std::function<void()>   m_lambda;
+    uint16_t                m_ID;
+    std::atomic<float>      m_progress;
+    std::atomic<bool>       m_isStopping;
 };
 
 class TinyTasksPool : public NonCopyableMovable
