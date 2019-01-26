@@ -149,7 +149,6 @@ public:
     {
         SUCCEDED,
         TASK_NOT_FOUND,
-        ERROR,
     };
     
     explicit TinyTasksPool() : m_numThreads(constants::kMinNumThreadsInPool), m_nextFreeTaskId(0)
