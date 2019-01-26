@@ -294,8 +294,8 @@ public:
         return task->GetStatus();
     }
     
-    uint8_t          GetNumThreads()                        const { return m_numThreads; }
-    uint16_t         GetNumPendingTasks()                   const { return m_pendingTasks.size(); }
+    uint8_t     GetNumThreads()         const { return m_numThreads; }
+    uint16_t    GetNumPendingTasks()    const { return m_pendingTasks.size(); }
     
 private:
     void InitThreads()
