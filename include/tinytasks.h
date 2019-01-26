@@ -168,9 +168,7 @@ public:
     
     ~TinyTasksPool()
     {
-        assert(m_threads.size() > 0);
-        assert(m_pendingTasks.size() >= 0);
-        assert(m_tasks.size() >= 0);
+        assert(GetNumRunningTasks() == 0 && "There are still tasks running. Tasks must be stopped before pool destruction");
         StopAllThreads();
         InitThreadsTasks();
         ClearPendingTasks();
@@ -214,10 +212,13 @@ public:
         {
             if(threadTask->GetID() == taskID)
             {
+                assert(threadTask->HasCompleted() || !threadTask->IsRunning() || !threadTask->IsPaused());
                 threadTask->SetLambda(newLambda);
                 m_threads[currentThreadIndex].join();
                 std::thread newTaskThread(&TinyTask::Run, threadTask);
                 m_threads[currentThreadIndex] = std::move(newTaskThread);
+                //Wait for task to start running
+                while(!threadTask->IsRunning()) {}
                 return Result::SUCCEDED;
             }
             
@@ -258,10 +259,43 @@ public:
         return Result::SUCCEDED;
     }
     
+    uint8_t GetNumRunningTasks()
+    {
+        std::lock_guard<std::mutex> lock(m_poolDataMutex);
+        
+        uint8_t numRunningTasks = 0;
+        
+        for(auto& threadTask : m_threadsTasks)
+        {
+            if(threadTask && threadTask->IsRunning())
+            {
+                numRunningTasks++;
+            }
+        }
+        
+        return numRunningTasks;
+    }
+    
+    TinyTask* GetTask(const uint16_t taskID) const
+    {
+        auto foundPair = m_tasks.find(taskID);
+        
+        if(foundPair != m_tasks.end())
+            return m_tasks.find(taskID)->second;
+        
+        return nullptr;
+    }
+    
+    TinyTask::Status GetTaskStatus(const uint16_t taskID) const
+    {
+        TinyTask* task = GetTask(taskID);
+        assert(task && "Task not found!");
+        
+        return task->GetStatus();
+    }
+    
     uint8_t          GetNumThreads()                        const { return m_numThreads; }
     uint16_t         GetNumPendingTasks()                   const { return m_pendingTasks.size(); }
-    TinyTask*        GetTask(const uint16_t taskID)         const { return m_tasks.find(taskID)->second; }
-    TinyTask::Status GetTaskStatus(const uint16_t taskID)   const { return m_tasks.find(taskID)->second->GetStatus(); }
     
 private:
     void InitThreads()
