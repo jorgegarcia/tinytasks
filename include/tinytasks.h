@@ -113,6 +113,7 @@ public:
     
     uint16_t GetTaskID() const { return m_taskID; }
     
+    bool IsRunning()     const { return m_taskStatus == TinyTaskStatus::RUNNING; }
     bool IsPaused()      const { return m_taskStatus == TinyTaskStatus::PAUSED; }
     bool IsStopping()    const { return m_taskIsStopping; }
     

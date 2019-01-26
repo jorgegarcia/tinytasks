@@ -294,7 +294,8 @@ TEST_F(TinyTasksPoolTest, TestRunPendingTasksInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
     
-    const uint16_t numTasksInPool = 512 + m_tinyTasksPool.GetNumThreads();
+    const uint16_t numQueuedTasks = 16;
+    const uint16_t numTasksInPool = numQueuedTasks + m_tinyTasksPool.GetNumThreads();
     for(uint16_t currentTaskID = 0; currentTaskID < numTasksInPool; ++currentTaskID)
     {
         uint16_t taskID = m_tinyTasksPool.CreateTask();
@@ -307,7 +308,7 @@ TEST_F(TinyTasksPoolTest, TestRunPendingTasksInTinyTasksPool)
         ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     }
     
-    ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), 512);
+    ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), numQueuedTasks);
     
     while(m_tinyTasksPool.GetNumPendingTasks() > 0)
     {
