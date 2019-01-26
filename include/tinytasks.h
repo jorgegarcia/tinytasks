@@ -16,8 +16,7 @@
 #define TINYTASKS_VERSION_MINOR 0
 #define TINYTASKS_VERSION_PATCH 0
 
-#define TT_SAFE_DELETE(p)       if(p) { delete p;   p = nullptr; }
-#define TT_SAFE_DELETE_ARRAY(p) if(p) { delete[] p; p = nullptr; }
+#define TINYTASKS_SAFE_DELETE(p)       if(p) { delete p;   p = nullptr; }
 
 namespace tinytasks
 {
@@ -234,7 +233,32 @@ public:
         return Result::TASK_NOT_FOUND;
     }
     
+    Result RunPendingTasks()
+    {
+        std::lock_guard<std::mutex> lock(m_poolDataMutex);
+        
+        uint8_t currentThreadIndex = 0;
+        
+        for(auto& threadTask : m_threadsTasks)
+        {
+            if(threadTask->HasStopped() || threadTask->HasCompleted())
+            {
+                if(m_pendingTasks.empty()) break;
+                m_threads[currentThreadIndex].join();
+                threadTask = m_pendingTasks.front();
+                m_pendingTasks.pop();
+                std::thread newTaskThread(&TinyTask::Run, threadTask);
+                m_threads[currentThreadIndex] = std::move(newTaskThread);
+            }
+            
+            currentThreadIndex++;
+        }
+        
+        return Result::SUCCEDED;
+    }
+    
     uint8_t     GetNumThreads() const { return m_numThreads; }
+    uint16_t    GetNumPendingTasks() const { return m_pendingTasks.size(); }
     TinyTask*   GetTask(const uint16_t taskID) const { return m_tasks.find(taskID)->second; }
     
 private:
@@ -270,7 +294,7 @@ private:
     {
         for(auto& task : m_tasks)
         {
-            TT_SAFE_DELETE(task.second);
+            TINYTASKS_SAFE_DELETE(task.second);
         }
     }
     

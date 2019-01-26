@@ -289,3 +289,38 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
     
     ASSERT_TRUE(task->HasStopped());
 }
+
+TEST_F(TinyTasksPoolTest, TestRunPendingTasksInTinyTasksPool)
+{
+    ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
+    
+    const uint16_t numTasksInPool = 512 + m_tinyTasksPool.GetNumThreads();
+    for(uint16_t currentTaskID = 0; currentTaskID < numTasksInPool; ++currentTaskID)
+    {
+        uint16_t taskID = m_tinyTasksPool.CreateTask();
+        ASSERT_EQ(taskID, currentTaskID);
+        
+        TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [currentTaskID]
+        {
+            StdOutThreadSafe("Running Task ID: " + std::to_string(currentTaskID));
+        });
+        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+    }
+    
+    ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), 512);
+    
+    while(m_tinyTasksPool.GetNumPendingTasks() > 0)
+    {
+        m_tinyTasksPool.RunPendingTasks();
+    }
+    
+    ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), 0);
+    
+    for(uint16_t currentTaskID = 0; currentTaskID < numTasksInPool; ++currentTaskID)
+    {
+        TinyTask* task = m_tinyTasksPool.GetTask(currentTaskID);
+        
+        while(!task->HasCompleted()) {}
+        ASSERT_TRUE(task->HasCompleted());
+    }
+}
