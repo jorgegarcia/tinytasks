@@ -259,9 +259,10 @@ public:
         return Result::SUCCEDED;
     }
     
-    uint8_t     GetNumThreads() const { return m_numThreads; }
-    uint16_t    GetNumPendingTasks() const { return m_pendingTasks.size(); }
-    TinyTask*   GetTask(const uint16_t taskID) const { return m_tasks.find(taskID)->second; }
+    uint8_t          GetNumThreads()                        const { return m_numThreads; }
+    uint16_t         GetNumPendingTasks()                   const { return m_pendingTasks.size(); }
+    TinyTask*        GetTask(const uint16_t taskID)         const { return m_tasks.find(taskID)->second; }
+    TinyTask::Status GetTaskStatus(const uint16_t taskID)   const { return m_tasks.find(taskID)->second->GetStatus(); }
     
 private:
     void InitThreads()
