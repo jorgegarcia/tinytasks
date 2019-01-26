@@ -357,6 +357,15 @@ TEST_F(TinyTasksPoolTest, TestGetNumRunningTasksInTinyTasksPool)
         ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     }
 
+    //Wait for tasks to actually start running
+    for(uint16_t currentTaskID = 0; currentTaskID < numTasksInPool; ++currentTaskID)
+    {
+        TinyTask* task = m_tinyTasksPool.GetTask(currentTaskID);
+        ASSERT_TRUE(task);
+        
+        while(!task->IsRunning()) {}
+    }
+    
     ASSERT_EQ(m_tinyTasksPool.GetNumRunningTasks(), numTasksInPool);
 
     for(uint16_t currentTaskID = 0; currentTaskID < numTasksInPool; ++currentTaskID)

@@ -217,8 +217,6 @@ public:
                 m_threads[currentThreadIndex].join();
                 std::thread newTaskThread(&TinyTask::Run, threadTask);
                 m_threads[currentThreadIndex] = std::move(newTaskThread);
-                //Wait for task to start running
-                while(!threadTask->IsRunning()) {}
                 return Result::SUCCEDED;
             }
             
