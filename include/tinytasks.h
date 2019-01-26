@@ -187,6 +187,7 @@ public:
             if(m_threadsTasks[currentThreadIndex] == nullptr)
             {
                 TinyTask* newTask = new TinyTask(m_nextFreeTaskId);
+                assert(newTask && "New task wasn't allocated");
                 m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
                 currentThreadTask = newTask;
                 return m_nextFreeTaskId++;
@@ -197,6 +198,7 @@ public:
 
         //If there is no space in the thread vector, create new task and queque it
         TinyTask* newTask = new TinyTask(m_nextFreeTaskId);
+        assert(newTask && "New task wasn't allocated");
         m_tasks.insert(std::pair<uint16_t, TinyTask*>(m_nextFreeTaskId, newTask));
         m_pendingTasks.push(newTask);
 

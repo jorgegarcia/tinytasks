@@ -26,6 +26,18 @@ int main(int argc, char* argv[])
         PrintHelp();
         return 0;
     }
+    
+    std::cout << "\nTinyTasks v" << std::string(version()) << " example\n\n";
+    
+    TinyTasksPool tasksPool(8);
+    
+    const unsigned int inputLength = 64;
+    char input[inputLength];
+    
+    while(strcmp(input, "quit") != 0)
+    {
+        std::cin >> input;
+    }
 
     return 0;
 }
