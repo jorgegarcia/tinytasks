@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
                     std::cout << "Can't create more tasks, as the pool ran out of IDs\n\n";
                     break;
                 }
-                
+
                 uint16_t taskID = tasksPool.CreateTask();
                 taskIDs.push_back(taskID);
                 std::cout << "Created task with ID: " << std::to_string(taskID) << "\n" << std::endl;
@@ -325,8 +325,7 @@ int main(int argc, char* argv[])
             }
             case Command::UNRECOGNISED:
             {
-                std::cout << "Unrecognised command\n\n";
-                
+                std::cout << "Unrecognised command\n\n";                
                 break;
             }
             default:
