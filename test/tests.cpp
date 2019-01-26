@@ -129,7 +129,7 @@ TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
     TinyTask task([&task]
     {
         uint8_t counter = 0;
-        uint8_t maxCount = 10;
+        uint8_t maxCount = 5;
 
         while(counter < maxCount)
         {
@@ -197,8 +197,8 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
     uint32_t taskID = m_tinyTasksPool.CreateTask();
     ASSERT_EQ(taskID, 0);
     
-    TinyTasksPool::TTPResult result1 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
-    ASSERT_EQ(result1, TinyTasksPool::TTPResult::SUCCEDED);
+    TinyTasksPool::Result result1 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
+    ASSERT_EQ(result1, TinyTasksPool::Result::SUCCEDED);
     
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     while(!task->HasCompleted()) {}
@@ -207,8 +207,8 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
     uint32_t taskID2 = m_tinyTasksPool.CreateTask();
     ASSERT_EQ(taskID2, 1);
     
-    TinyTasksPool::TTPResult result2 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
-    ASSERT_EQ(result2, TinyTasksPool::TTPResult::SUCCEDED);
+    TinyTasksPool::Result result2 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
+    ASSERT_EQ(result2, TinyTasksPool::Result::SUCCEDED);
     
     TinyTask* task2  = m_tinyTasksPool.GetTask(taskID);
     while(!task->HasCompleted()) {}
@@ -224,11 +224,11 @@ TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
         uint16_t taskID = m_tinyTasksPool.CreateTask();
         ASSERT_EQ(taskID, currentTaskID);
         
-        TinyTasksPool::TTPResult result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [currentTaskID]
+        TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [currentTaskID]
         {
             StdOutThreadSafe("Running Task ID: " + std::to_string(currentTaskID));
         });
-        ASSERT_EQ(result, TinyTasksPool::TTPResult::SUCCEDED);
+        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     }
 }
 
@@ -239,7 +239,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
     uint32_t taskID = m_tinyTasksPool.CreateTask();
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
                                                  
-    TinyTasksPool::TTPResult result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
+    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
     {
         while(!task->IsStopping())
         {
@@ -248,7 +248,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
         }
     });
     
-    ASSERT_EQ(result, TinyTasksPool::TTPResult::SUCCEDED);
+    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     
     sleep(3);
     task->Stop();
@@ -265,7 +265,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
     uint32_t taskID = m_tinyTasksPool.CreateTask();
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     
-    TinyTasksPool::TTPResult result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
+    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
     {
         while(!task->IsStopping())
         {
@@ -275,7 +275,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
         }
     });
     
-    ASSERT_EQ(result, TinyTasksPool::TTPResult::SUCCEDED);
+    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     
     sleep(3);
     task->Pause();

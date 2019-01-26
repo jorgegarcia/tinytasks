@@ -86,19 +86,19 @@ public:
     
     void Pause()
     {
-        assert(m_taskStatus == TinyTaskStatus::RUNNING);
+        assert(m_taskStatus == TinyTaskStatus::RUNNING && "Can't pause task as its state has changed");
         m_taskStatus = TinyTaskStatus::PAUSED;
     }
     
     void Resume()
     {
-        assert(m_taskStatus == TinyTaskStatus::PAUSED);
+        assert(m_taskStatus == TinyTaskStatus::PAUSED && "Can't resume task as its state has changed");
         m_taskStatus = TinyTaskStatus::RUNNING;
     }
 
     void Stop()
     {
-        assert(m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED);
+        assert((m_taskStatus == TinyTaskStatus::RUNNING || m_taskStatus == TinyTaskStatus::PAUSED) && "Can't stop task as its state has changed");
 
         if(IsPaused()) Resume();
         m_taskIsStopping = true;
@@ -112,13 +112,13 @@ public:
         }
     }
     
+    uint16_t GetTaskID() const { return m_taskID; }
+    
     bool IsPaused()      const { return m_taskStatus == TinyTaskStatus::PAUSED; }
     bool IsStopping()    const { return m_taskIsStopping; }
     
     bool HasStopped()    const { return m_taskStatus == TinyTaskStatus::STOPPED; }
     bool HasCompleted()  const { return m_taskStatus == TinyTaskStatus::COMPLETED; }
-    
-    uint16_t GetTaskID() const { return m_taskID; }
     
     void  SetProgress(const float progress) { m_taskProgress = progress; }
     float GetProgress()  const              { return m_taskProgress; }
@@ -144,7 +144,7 @@ private:
 class TinyTasksPool : public NonCopyableMovable
 {
 public:
-    enum TTPResult
+    enum Result
     {
         SUCCEDED,
         TASK_NOT_FOUND,
@@ -205,7 +205,7 @@ public:
         return m_nextFreeTaskId++;
     }
     
-    TTPResult SetNewLambdaForTask(const uint16_t taskID, std::function<void()> newLambda)
+    Result SetNewLambdaForTask(const uint16_t taskID, std::function<void()> newLambda)
     {
         std::lock_guard<std::mutex> lock(m_poolDataMutex);
         
@@ -218,7 +218,7 @@ public:
                 m_threads[currentThreadIndex].join();
                 std::thread newTaskThread(&TinyTask::Run, threadTask);
                 m_threads[currentThreadIndex] = std::move(newTaskThread);
-                return TTPResult::SUCCEDED;
+                return Result::SUCCEDED;
             }
             
             currentThreadIndex++;
@@ -228,10 +228,10 @@ public:
         if(task->second)
         {
             task->second->SetLambda(newLambda);
-            return TTPResult::SUCCEDED;
+            return Result::SUCCEDED;
         }
     
-        return TTPResult::TASK_NOT_FOUND;
+        return Result::TASK_NOT_FOUND;
     }
     
     uint8_t     GetNumThreads() const { return m_numThreads; }
