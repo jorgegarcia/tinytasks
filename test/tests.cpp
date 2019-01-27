@@ -198,7 +198,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
     ASSERT_EQ(taskID, 0);
     
     TinyTasksPool::Result result1 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
-    ASSERT_EQ(result1, TinyTasksPool::Result::SUCCEDED);
+    ASSERT_EQ(result1, TinyTasksPool::Result::SUCCEEDED);
     
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task);
@@ -209,7 +209,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
     ASSERT_EQ(taskID2, 1);
     
     TinyTasksPool::Result result2 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
-    ASSERT_EQ(result2, TinyTasksPool::Result::SUCCEDED);
+    ASSERT_EQ(result2, TinyTasksPool::Result::SUCCEEDED);
     
     TinyTask* task2  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task2);
@@ -234,7 +234,7 @@ TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
         if(currentTaskID >= m_tinyTasksPool.GetNumThreads())
             ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
         else
-            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     }
 }
 
@@ -255,7 +255,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
         }
     });
     
-    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     
     sleep(3);
     task->Stop();
@@ -283,7 +283,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
         }
     });
     
-    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+    ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     
     sleep(3);
     task->Pause();
@@ -319,7 +319,7 @@ TEST_F(TinyTasksPoolTest, TestRunPendingTasksInTinyTasksPool)
         if(currentTaskID >= m_tinyTasksPool.GetNumThreads())
             ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
         else
-            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     }
     
     ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), numQueuedTasks);
@@ -362,7 +362,7 @@ TEST_F(TinyTasksPoolTest, TestGetNumRunningTasksInTinyTasksPool)
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         });
-        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     }
 
     //Wait for tasks to actually start running

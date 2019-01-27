@@ -239,7 +239,7 @@ public:
     //! Possible results for the pool operations
     enum Result
     {
-        SUCCEDED,
+        SUCCEEDED,
         SUCCEEDED_AT_QUEUE,
         TASK_NOT_FOUND,
     };
@@ -324,7 +324,7 @@ public:
                 m_threads[currentThreadIndex].join();
                 std::thread newTaskThread(&TinyTask::Run, threadTask);
                 m_threads[currentThreadIndex] = std::move(newTaskThread);
-                return Result::SUCCEDED;
+                return Result::SUCCEEDED;
             }
             
             currentThreadIndex++;
@@ -363,7 +363,7 @@ public:
             currentThreadIndex++;
         }
         
-        return Result::SUCCEDED;
+        return Result::SUCCEEDED;
     }
     
     //! Gets the number of tasks that are currently running

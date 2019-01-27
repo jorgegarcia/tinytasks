@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
                     std::cout << "Task type not recognised. Only values 1 and 2 are allowed\n\n";
                 }
                 
-                assert(lambdaResult == TinyTasksPool::Result::SUCCEDED || lambdaResult == TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
+                assert(lambdaResult == TinyTasksPool::Result::SUCCEEDED || lambdaResult == TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
                 
                 //Wait until task starts running (if it's not queued)
                 while(!currentTask->IsRunning() && lambdaResult != TinyTasksPool::Result::SUCCEEDED_AT_QUEUE) {}
