@@ -276,8 +276,10 @@ public:
         return numRunningTasks;
     }
     
-    TinyTask* GetTask(const uint16_t taskID) const
+    TinyTask* GetTask(const uint16_t taskID)
     {
+        std::lock_guard<std::mutex> lock(m_poolDataMutex);
+        
         auto foundPair = m_tasks.find(taskID);
         
         if(foundPair != m_tasks.end())
@@ -286,7 +288,7 @@ public:
         return nullptr;
     }
     
-    TinyTask::Status GetTaskStatus(const uint16_t taskID) const
+    TinyTask::Status GetTaskStatus(const uint16_t taskID)
     {
         TinyTask* task = GetTask(taskID);
         assert(task && "Task not found!");
