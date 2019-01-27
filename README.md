@@ -1,7 +1,6 @@
 # TinyTasks 
-## A simple and single-header tasks library in C++11
 
-Released under MIT license
+Simple and single-header tasks library in C++11
 
 ## Build instructions
 
@@ -118,3 +117,8 @@ TinyTasksPool::Result lambdaResult = tinyTasksPool.SetNewLambdaForTask(taskID, [
 ```
 
 Please consult `test/tests.cpp` and `src\example.cpp` for detailed use cases.
+
+## License
+
+Released under MIT license
+
