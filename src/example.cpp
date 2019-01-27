@@ -142,23 +142,19 @@ int main(int argc, char* argv[])
             continue;
         }
         
-        if((command.commandType == Command::PAUSE_TASK_ID  ||
+        TinyTask* task = nullptr;
+        
+        if(command.commandType == Command::PAUSE_TASK_ID   ||
             command.commandType == Command::RESUME_TASK_ID ||
             command.commandType == Command::STOP_TASK_ID   ||
             command.commandType == Command::STATUS_TASK_ID)
-           && std::find(taskIDs.begin(), taskIDs.end(), command.value) == taskIDs.end())
         {
-            std::cout << "Command task ID not found\n\n";
-            continue;
-        }
-        
-        TinyTask* task = nullptr;
-        
-        if(command.commandType  == Command::PAUSE_TASK_ID   ||
-            command.commandType == Command::RESUME_TASK_ID  ||
-            command.commandType == Command::STOP_TASK_ID    ||
-            command.commandType == Command::STATUS_TASK_ID)
-        {
+            if(std::find(taskIDs.begin(), taskIDs.end(), command.value) == taskIDs.end())
+            {
+                std::cout << "Command task ID not found\n\n";
+                continue;
+            }
+            
             task = tasksPool.GetTask(command.value);
             assert(task && "Task not found");
         }
@@ -167,6 +163,8 @@ int main(int argc, char* argv[])
         {
             case Command::START:
             {
+                assert(!task);
+                
                 if(tasksPool.GetNumThreads() + tasksPool.GetNumPendingTasks() >= tinytasks::constants::kMaxNumTasksInPool)
                 {
                     std::cout << "Can't create more tasks, as the pool ran out of IDs\n\n";
@@ -197,6 +195,8 @@ int main(int argc, char* argv[])
             }
             case Command::START_TASK_TYPE_ID:
             {
+                assert(!task);
+                
                 if(tasksPool.GetNumThreads() + tasksPool.GetNumPendingTasks() >= tinytasks::constants::kMaxNumTasksInPool)
                 {
                     std::cout << "Can't create more tasks, as the pool ran out of IDs\n\n";
@@ -262,18 +262,21 @@ int main(int argc, char* argv[])
             }
             case Command::PAUSE_TASK_ID:
             {
+                assert(task);
                 task->Pause();
                 while(!task->IsPaused()) {}
                 break;
             }
             case Command::RESUME_TASK_ID:
             {
+                assert(task);
                 task->Resume();
                 while(!task->IsRunning()) {}
                 break;
             }
             case Command::STOP_TASK_ID:
             {
+                assert(task);
                 task->Stop();
                 while(task->IsStopping() || !task->HasStopped()) {}
                 break;
@@ -325,6 +328,7 @@ int main(int argc, char* argv[])
             }
             case Command::STATUS_TASK_ID:
             {
+                assert(task);
                 TinyTask::Status taskStatus = task->GetStatus();
                 
                 if(taskStatus == TinyTask::Status::COMPLETED)
@@ -367,7 +371,7 @@ int main(int argc, char* argv[])
             while(currentTask->IsStopping() && !currentTask->HasStopped()) {}
         }
         
-        if(currentTask->IsPaused())
+        if(currentTask->IsPaused() && currentTask->GetProgress() > 0.0f)
         {
             currentTask->Resume();
             while(!currentTask->IsRunning()) {}
