@@ -13,8 +13,8 @@ void PrintHelp()
     std::cout << "\nTinyTasks v" << std::string(tinytasks_lib_version()) << " example | Usage and allowed commands\n\n";
 
     std::cout << "start <task_type_id>: starts a task of type 1 or 2\n";
-    std::cout << "\t1: writes random numbers to a .txt file during 1 minute\n";
-    std::cout << "\t2: generates random numbers during 1 minute\n\n";
+    std::cout << "\t1: writes random numbers to a .txt file during 1 minute (if not paused)\n";
+    std::cout << "\t2: generates random numbers during 1 minute (if not paused)\n\n";
     std::cout << "start: starts a task of type 2 and prints its ID\n\n";
     std::cout << "pause <task_id>: pauses the task with the given id\n\n";
     std::cout << "resume <task_id>: resumes task with the given id (if paused)\n\n";
