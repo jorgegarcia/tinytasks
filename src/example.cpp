@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <cstdio>
 #include <ctime>
 #include <algorithm>
@@ -14,7 +15,7 @@ void PrintHelp()
     std::cout << "start <task_type_id>: starts a task of type 1 or 2\n";
     std::cout << "\t1: writes random numbers to disk during 1 minute\n";
     std::cout << "\t2: generates random numbers during 1 minute\n\n";
-    std::cout << "start: starts a task of type 1 and prints its ID\n\n";
+    std::cout << "start: starts a task of type 2 and prints its ID\n\n";
     std::cout << "pause <task_id>: pauses the task with the given id\n\n";
     std::cout << "resume <task_id>: resumes task with the given id (if paused)\n\n";
     std::cout << "stop <task_id>: stops the task with the given id (if not stopped)\n\n";
@@ -174,6 +175,23 @@ int main(int argc, char* argv[])
 
                 uint16_t taskID = tasksPool.CreateTask();
                 taskIDs.push_back(taskID);
+
+                TinyTask* currentTask = tasksPool.GetTask(taskID);
+                
+                tasksPool.SetNewLambdaForTask(taskID, [currentTask]
+                {
+                    const unsigned int maxIterations = 300;
+                    for(unsigned int value = 0; value < maxIterations; ++value)
+                    {
+                        if(currentTask->IsStopping() || currentTask->HasStopped()) break;
+                        const float randomNumber = rand();
+                        (void)randomNumber;
+                        currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
+                        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                        currentTask->PauseIfNeeded();
+                    }
+                });
+                
                 std::cout << "Created task with ID: " << std::to_string(taskID) << "\n" << std::endl;
                 break;
             }
@@ -191,7 +209,7 @@ int main(int argc, char* argv[])
                 
                 if(command.value == 1)
                 {
-                    tasksPool.SetNewLambdaForTask(taskID, [&currentTask]
+                    tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         std::string filename;
                         clock_t timeNow = clock();
@@ -207,7 +225,7 @@ int main(int argc, char* argv[])
                             std::string stringToWrite;
                             stringToWrite.append(std::to_string(randomNumber));
                             fwrite(stringToWrite.c_str(), sizeof(char), stringToWrite.size(), fileToWrite);
-                            currentTask->SetProgress(static_cast<float>(value) / static_cast<float>(maxIterations) * 100.0f);
+                            currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
                             currentTask->PauseIfNeeded();
                         }
@@ -217,7 +235,7 @@ int main(int argc, char* argv[])
                 }
                 else if(command.value == 2)
                 {
-                    tasksPool.SetNewLambdaForTask(taskID, [&currentTask]
+                    tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         const unsigned int maxIterations = 300;
                         for(unsigned int value = 0; value < maxIterations; ++value)
@@ -225,7 +243,7 @@ int main(int argc, char* argv[])
                             if(currentTask->IsStopping() || currentTask->HasStopped()) break;
                             const float randomNumber = rand();
                             (void)randomNumber;
-                            currentTask->SetProgress(static_cast<float>(value) / static_cast<float>(maxIterations) * 100.0f);
+                            currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
                             currentTask->PauseIfNeeded();
                         }
@@ -268,7 +286,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::cout << "[Task ID] [Status] [Progress]\n";
+                    std::cout << std::left << std::setw(10) << "[Task ID]" << std::setw(11) << "[Status]" << std::setw(8) << "[Progress]\n";
                     
                     for(unsigned int taskIndex = 0; taskIndex < taskIDs.size(); ++taskIndex)
                     {
@@ -295,9 +313,13 @@ int main(int argc, char* argv[])
                             statusString.append("stopped");
                         }
                         
-                        std::cout << currentTask->GetID() << " " << statusString << " " << std::to_string(currentTask->GetProgress()) << std::endl;
-                        std::cout << "\n";
+                        std::string progress(std::to_string(currentTask->GetProgress()));
+                        progress.resize(5);
+                        
+                        std::cout << std::left << std::setw(10) << currentTask->GetID() << std::setw(11) << statusString
+                        << std::setw(8) << progress + " %\n";
                     }
+                    std::cout << "\n";
                 }
                 break;
             }
@@ -339,8 +361,11 @@ int main(int argc, char* argv[])
         TinyTask* currentTask = tasksPool.GetTask(taskIDs[taskIndex]);
         assert(currentTask);
         
-        currentTask->Stop();
-        while(currentTask->IsStopping() && !currentTask->HasStopped()) {}
+        if(!currentTask->HasCompleted())
+        {
+            currentTask->Stop();
+            while(currentTask->IsStopping() && !currentTask->HasStopped()) {}
+        }
     }
     
     //Cleanup
