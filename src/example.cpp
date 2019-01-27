@@ -108,6 +108,26 @@ static Command ParseInput(const char* input)
     return command;
 }
     
+static void ConvertTaskStatusToString(const TinyTask::Status taskStatus, std::string& statusString)
+{
+    if(taskStatus == TinyTask::Status::COMPLETED)
+    {
+        statusString.append("completed");
+    }
+    else if(taskStatus == TinyTask::Status::PAUSED)
+    {
+        statusString.append("paused");
+    }
+    else if(taskStatus == TinyTask::Status::RUNNING)
+    {
+        statusString.append("running");
+    }
+    else if(taskStatus == TinyTask::Status::STOPPED)
+    {
+        statusString.append("stopped");
+    }
+}
+    
 }
 
 int main(int argc, char* argv[])
@@ -325,23 +345,7 @@ int main(int argc, char* argv[])
                         
                         const TinyTask::Status status = currentTask->GetStatus();
                         std::string statusString;
-
-                        if(status == TinyTask::Status::COMPLETED)
-                        {
-                            statusString.append("completed");
-                        }
-                        else if(status == TinyTask::Status::PAUSED)
-                        {
-                            statusString.append("paused");
-                        }
-                        else if(status == TinyTask::Status::RUNNING)
-                        {
-                            statusString.append("running");
-                        }
-                        else if(status == TinyTask::Status::STOPPED)
-                        {
-                            statusString.append("stopped");
-                        }
+                        ConvertTaskStatusToString(status, statusString);
                         
                         std::string progress(std::to_string(currentTask->GetProgress()));
                         progress.resize(5);
@@ -359,23 +363,7 @@ int main(int argc, char* argv[])
                 TinyTask::Status taskStatus = task->GetStatus();
                 
                 std::string statusString;
-                
-                if(taskStatus == TinyTask::Status::COMPLETED)
-                {
-                    statusString.append("completed");
-                }
-                else if(taskStatus == TinyTask::Status::PAUSED)
-                {
-                    statusString.append("paused");
-                }
-                else if(taskStatus == TinyTask::Status::RUNNING)
-                {
-                    statusString.append("running");
-                }
-                else if(taskStatus == TinyTask::Status::STOPPED)
-                {
-                    statusString.append("stopped");
-                }
+                ConvertTaskStatusToString(taskStatus, statusString);
                 
                 std::string progress(std::to_string(task->GetProgress()));
                 progress.resize(5);
