@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    std::cout << "\nTinyTasks v" << std::string(version()) << " example\n\n";
+    std::cout << "\nTinyTasks v" << std::string(tinytasks_lib_version()) << " example\n\n";
     
     //Setup
     TinyTasksPool tasksPool(8);
@@ -331,22 +331,29 @@ int main(int argc, char* argv[])
                 assert(task);
                 TinyTask::Status taskStatus = task->GetStatus();
                 
+                std::string statusString;
+                
                 if(taskStatus == TinyTask::Status::COMPLETED)
                 {
-                    std::cout << "Task COMPLETED\n\n";
+                    statusString.append("completed");
                 }
                 else if(taskStatus == TinyTask::Status::PAUSED)
                 {
-                    std::cout << "Task PAUSED\n\n";
+                    statusString.append("paused");
                 }
                 else if(taskStatus == TinyTask::Status::RUNNING)
                 {
-                    std::cout << "Task RUNNING\n\n";
+                    statusString.append("running");
                 }
                 else if(taskStatus == TinyTask::Status::STOPPED)
                 {
-                    std::cout << "Task STOPPED\n\n";
+                    statusString.append("stopped");
                 }
+                
+                std::string progress(std::to_string(task->GetProgress()));
+                progress.resize(5);
+                
+                std::cout << "Task ID " << std::to_string(task->GetID()) << " is " + statusString + " at progress " + progress + " %" << "\n\n";
                 break;
             }
             case Command::UNRECOGNISED:
