@@ -72,7 +72,7 @@ static Command ParseInput(const char* input)
     std::vector<std::string> elems;
     SplitStringElements(stringToParse, ' ', elems);
     
-    if(elems.size() > 1 && elems.size() < 3 && IsStringANumber(elems[2]))
+    if(elems.size() > 1 && elems.size() < 3 && IsStringANumber(elems[1]))
         command.value = static_cast<uint16_t>(std::stoi(elems[1]));
     
     if(strcmp(elems[0].c_str(), "start") == 0)
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
                     for(unsigned int value = 0; value < maxIterations; ++value)
                     {
                         if(currentTask->IsStopping() || currentTask->HasStopped()) break;
-                        const float randomNumber = rand();
+                        const float randomNumber = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
                         (void)randomNumber;
                         currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                         std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -221,9 +221,9 @@ int main(int argc, char* argv[])
                         for(unsigned int value = 0; value < maxIterations; ++value)
                         {
                             if(currentTask->IsStopping() || currentTask->HasStopped()) break;
-                            const float randomNumber = rand();
+                            const float randomNumber = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
                             std::string stringToWrite;
-                            stringToWrite.append(std::to_string(randomNumber));
+                            stringToWrite.append(std::to_string(randomNumber) + " ");
                             fwrite(stringToWrite.c_str(), sizeof(char), stringToWrite.size(), fileToWrite);
                             currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
                         for(unsigned int value = 0; value < maxIterations; ++value)
                         {
                             if(currentTask->IsStopping() || currentTask->HasStopped()) break;
-                            const float randomNumber = rand();
+                            const float randomNumber = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
                             (void)randomNumber;
                             currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
                 //Wait until task starts running
                 while(!currentTask->IsRunning()) {}
                 
-                std::cout << "Created task of type " << std::to_string(command.value) << " and ID " << std::to_string(taskID) << std::endl;
+                std::cout << "Created task of type " << std::to_string(command.value) << " and ID " << std::to_string(taskID) << "\n\n";
                 break;
             }
             case Command::PAUSE_TASK_ID:
@@ -361,8 +361,16 @@ int main(int argc, char* argv[])
         TinyTask* currentTask = tasksPool.GetTask(taskIDs[taskIndex]);
         assert(currentTask);
         
-        if(!currentTask->HasCompleted())
+        if(currentTask->IsRunning())
         {
+            currentTask->Stop();
+            while(currentTask->IsStopping() && !currentTask->HasStopped()) {}
+        }
+        
+        if(currentTask->IsPaused())
+        {
+            currentTask->Resume();
+            while(!currentTask->IsRunning()) {}
             currentTask->Stop();
             while(currentTask->IsStopping() && !currentTask->HasStopped()) {}
         }
