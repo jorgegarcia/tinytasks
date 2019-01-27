@@ -10,7 +10,7 @@ using namespace tinytasks;
 
 void PrintHelp()
 {
-    std::cout << "\nTinyTasks v" << std::string(version()) << " example | Usage and allowed commands\n\n";
+    std::cout << "\nTinyTasks v" << std::string(tinytasks_lib_version()) << " example | Usage and allowed commands\n\n";
 
     std::cout << "start <task_type_id>: starts a task of type 1 or 2\n";
     std::cout << "\t1: writes random numbers to disk during 1 minute\n";

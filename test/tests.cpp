@@ -13,7 +13,7 @@ void StdOutThreadSafe(const std::string& message)
 
 TEST(TinyTasksTest, TestLibVersionNumber)
 {
-    ASSERT_STREQ(::version(), "1.0.0");
+    ASSERT_STREQ(tinytasks_lib_version(), "1.0.0");
 }
 
 TEST(TinyTasksTest, TestCreateTinyTask)
@@ -242,7 +242,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task);
                                                  
-    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
+    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [task]
     {
         while(!task->IsStopping())
         {
@@ -269,7 +269,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task);
     
-    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [&task]
+    TinyTasksPool::Result result = m_tinyTasksPool.SetNewLambdaForTask(taskID, [task]
     {
         while(!task->IsStopping())
         {

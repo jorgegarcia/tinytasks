@@ -21,7 +21,7 @@
 namespace tinytasks
 {
 
-static const char* version()
+static const char* tinytasks_lib_version()
 {
     std::string version;
 
