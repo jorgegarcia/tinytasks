@@ -13,7 +13,7 @@ void PrintHelp()
     std::cout << "\nTinyTasks v" << std::string(tinytasks_lib_version()) << " example | Usage and allowed commands\n\n";
 
     std::cout << "start <task_type_id>: starts a task of type 1 or 2\n";
-    std::cout << "\t1: writes random numbers to disk during 1 minute\n";
+    std::cout << "\t1: writes random numbers to a .txt file during 1 minute\n";
     std::cout << "\t2: generates random numbers during 1 minute\n\n";
     std::cout << "start: starts a task of type 2 and prints its ID\n\n";
     std::cout << "pause <task_id>: pauses the task with the given id\n\n";
@@ -145,7 +145,9 @@ int main(int argc, char* argv[])
     //Setup
     TinyTasksPool tasksPool(8);
     std::vector<uint16_t> taskIDs;
+    std::vector<uint8_t> taskTypeIDs;
     taskIDs.reserve(UINT16_MAX);
+    taskTypeIDs.reserve(UINT16_MAX);
     
     bool abortBackgroundThread = false;
     std::thread queuedTasksThread([&tasksPool, &abortBackgroundThread]
@@ -213,6 +215,7 @@ int main(int argc, char* argv[])
 
                 uint16_t taskID = tasksPool.CreateTask();
                 taskIDs.push_back(taskID);
+                taskTypeIDs.push_back(2);
 
                 TinyTask* currentTask = tasksPool.GetTask(taskID);
                 
@@ -250,6 +253,8 @@ int main(int argc, char* argv[])
                 
                 if(command.value == 1)
                 {
+                    taskTypeIDs.push_back(1);
+                    
                     lambdaResult =tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         std::string filename;
@@ -276,6 +281,8 @@ int main(int argc, char* argv[])
                 }
                 else if(command.value == 2)
                 {
+                    taskTypeIDs.push_back(2);
+                    
                     lambdaResult = tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         const unsigned int maxIterations = 300;
@@ -355,8 +362,8 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::cout << std::left << std::setw(10) << "[Task ID]" << std::setw(11) << "[Status]"
-                              << std::setw(8) << "[Progress]\n";
+                    std::cout << std::left << std::setw(10) << "[Task ID]" << std::setw(10) << "[Type ID]"
+                              << std::setw(10) << "[Status]" << std::setw(8) << "[Progress]\n";
                     
                     for(unsigned int taskIndex = 0; taskIndex < taskIDs.size(); ++taskIndex)
                     {
@@ -370,8 +377,12 @@ int main(int argc, char* argv[])
                         std::string progress(std::to_string(currentTask->GetProgress()));
                         progress.resize(5);
                         
-                        std::cout << std::left << std::setw(10) << currentTask->GetID() << std::setw(11)
-                                  << statusString << std::setw(8) << progress + " %\n";
+                        auto taskTypeIDPosition = std::find(taskIDs.begin(), taskIDs.end(), currentTask->GetID());
+                        assert(taskTypeIDPosition != taskIDs.end());
+                        uint16_t index = std::distance(taskIDs.begin(), taskTypeIDPosition);
+                        
+                        std::cout << std::left << std::setw(10) << currentTask->GetID() << std::setw(10) << std::to_string(taskTypeIDs[index])
+                                  << std::setw(10) << statusString << std::setw(8) << progress + " %\n";
                     }
                     std::cout << "\n";
                 }
@@ -388,7 +399,11 @@ int main(int argc, char* argv[])
                 std::string progress(std::to_string(task->GetProgress()));
                 progress.resize(5);
                 
-                std::cout << "Task ID " << std::to_string(task->GetID())
+                auto taskTypeIDPosition = std::find(taskIDs.begin(), taskIDs.end(), task->GetID());
+                assert(taskTypeIDPosition != taskIDs.end());
+                uint16_t index = std::distance(taskIDs.begin(), taskTypeIDPosition);
+                
+                std::cout << "Task ID " << std::to_string(task->GetID()) << " of type " << std::to_string(taskTypeIDs[index])
                           << " is " + statusString + " at progress " + progress + " %" << "\n\n";
                 break;
             }
