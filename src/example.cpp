@@ -147,6 +147,19 @@ int main(int argc, char* argv[])
     std::vector<uint16_t> taskIDs;
     taskIDs.reserve(UINT16_MAX);
     
+    bool abortBackgroundThread = false;
+    std::thread queuedTasksThread([&tasksPool, &abortBackgroundThread]
+    {
+        while(!abortBackgroundThread)
+        {
+            if(tasksPool.GetNumPendingTasks() > 0)
+            {
+                tasksPool.RunPendingTasks();
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
+        }
+    });
+    
     const unsigned int inputLength = 64;
     char input[inputLength];
     
@@ -154,7 +167,12 @@ int main(int argc, char* argv[])
     while(true)
     {
         std::cin.getline(input, sizeof(input));
-        if(strcmp(input, "quit") == 0) break;
+        
+        if(strcmp(input, "quit") == 0)
+        {
+            abortBackgroundThread = true;
+            break;
+        }
         
         Command command = ParseInput(input);
         
@@ -407,6 +425,7 @@ int main(int argc, char* argv[])
     
     //Cleanup
     taskIDs.clear();
+    queuedTasksThread.join();
 
     return 0;
 }
