@@ -49,8 +49,6 @@
 #define TINYTASKS_VERSION_MINOR 0
 #define TINYTASKS_VERSION_PATCH 0
 
-#define TINYTASKS_SAFE_DELETE(p) if(p) { delete p; p = nullptr; }
-
 namespace tinytasks
 {
 
@@ -226,8 +224,11 @@ private:
 //! Once you create tasks, the IDs are stored in the pool object and
 //! aren't recycled for new tasks. Have this into account in order to
 //! drive the logic of your application.
+//! Beware that the call to GetTask(taskID) returns a pointer to the task
+//! that is owned by the pool. If you delete the pointer it will lead
+//! to trouble. This probably needs a workaround in order to prevent it.
 //! If the number of tasks created exceeds the number of threads, the
-//! tasks are queued (with the "paused" state"), so if you want to run
+//! tasks are queued (with a "paused" state"), so if you want to run
 //! them you have to call the member function RunPendingTasks().
 //!
 //! @note This class handles std::thread objects. Any other threading API
@@ -452,7 +453,13 @@ private:
     {
         for(auto& task : m_tasks)
         {
-            TINYTASKS_SAFE_DELETE(task.second);
+            assert(task.second && "The task object has been deleted outside of the pool");
+            
+            if(task.second)
+            {
+                delete task.second;
+                task.second = nullptr;
+            }
         }
     }
     
