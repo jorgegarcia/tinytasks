@@ -55,9 +55,9 @@ namespace tinytasks
 //! @brief Local constants (used mainly in the TinyTasksPool class)
 namespace constants
 {
-    static const uint8_t    kMaxNumThreadsInPool    = UINT8_MAX;
-    static const uint8_t    kMinNumThreadsInPool    = 2;
-    static const uint16_t   kMaxNumTasksInPool      = UINT16_MAX;
+    static const uint8_t  kMaxNumThreadsInPool  = UINT8_MAX;
+    static const uint8_t  kMinNumThreadsInPool  = 2;
+    static const uint16_t kMaxNumTasksInPool    = UINT16_MAX;
 }
 
 //! @brief Gets the current library version
