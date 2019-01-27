@@ -71,39 +71,41 @@ static Command ParseInput(const char* input)
     
     std::vector<std::string> elems;
     SplitStringElements(stringToParse, ' ', elems);
-    
-    if(elems.size() > 1 && elems.size() < 3 && IsStringANumber(elems[1]))
-        command.value = static_cast<uint16_t>(std::stoi(elems[1]));
 
     if(strcmp(elems[0].c_str(), "start") == 0)
     {
         if(elems.size() == 1)
             command.commandType = Command::START;
-        else if(elems.size() == 2 && IsStringANumber(elems[1]))
+        else if(elems.size() == 2)
             command.commandType = Command::START_TASK_TYPE_ID;
     }
     else if(strcmp(elems[0].c_str(), "pause") == 0)
     {
-        if(elems.size() == 2 && IsStringANumber(elems[1]))
+        if(elems.size() == 2)
             command.commandType = Command::PAUSE_TASK_ID;
     }
     else if(strcmp(elems[0].c_str(), "resume") == 0)
     {
-        if(elems.size() == 2 && IsStringANumber(elems[1]))
+        if(elems.size() == 2)
             command.commandType = Command::RESUME_TASK_ID;
     }
     else if(strcmp(elems[0].c_str(), "stop") == 0)
     {
-        if(elems.size() == 2 && IsStringANumber(elems[1]))
+        if(elems.size() == 2)
             command.commandType = Command::STOP_TASK_ID;
     }
     else if(strcmp(elems[0].c_str(), "status") == 0)
     {
         if(elems.size() == 1)
             command.commandType = Command::STATUS;
-        if(elems.size() == 2 && IsStringANumber(elems[1]))
+        else if(elems.size() == 2)
             command.commandType = Command::STATUS_TASK_ID;
     }
+    
+    if(elems.size() == 2 && IsStringANumber(elems[1]))
+        command.value = static_cast<uint16_t>(std::stoi(elems[1]));
+    else if(elems.size() >= 2)
+        command.commandType = Command::UNRECOGNISED;
     
     return command;
 }
