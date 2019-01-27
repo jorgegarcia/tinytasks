@@ -7,22 +7,114 @@ Released under MIT license
 
 In order to build the tests and example with cmake, type the following commands from the the repository directory in the terminal:
 
+```shell
 	$mkdir build
 	$cd build
 	$cmake ..
 	$make
+```
 
-This will generate in the folder build/bin the corresponding binaries. 
+This will generate in the folder build/bin/ the corresponding binaries. 
 
-To run the tests type:
+To run the tests (from the bin/ directory):
 
-	$cd build
+```shell
+	$cd bin
 	$./tests
+```
 
 To see the allowed commands for the example program, please enter:
 
-	$cd build
-	$./example --help
+```shell
+$cd bin
+$./example --help
+```
 
 ## How to use the library
 
+The library has two classes:
+
+* <b>TinyTask</b> is the minimal unit that represents a task that is asynchronous. It doesn't know much of threads, as it only holds the state and the `Run()` function for the thread, as well as a lambda that is configurable.
+* <b>TinyTasksPool</b> is a thread pool that can handle and manage asynchronous tasks. It holds a finite number of worker threads, and it can queue tasks when the number of tasks is above the number of available threads. So for instance, if the pool has 8 threads and all are busy, if a new task is created it will be added to the waiting queue.
+
+The tests and the examples are self-explanatory for how to use the API, but the minimal steps for using it are described below.
+
+First, you need to include the header from the `include/` directory.
+
+```C++
+#include "tinytasks.h"
+
+using namespace tinytasks;
+```
+
+Then you can start instantiating objects:
+
+```C++
+// Create a tiny task with ID 1 and run it synchronously
+TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, 1);
+task.Run();
+```
+
+Another example, it waits for task completion:
+
+```C++
+TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT16_MAX);
+std::thread taskThread(&TinyTask::Run, &task);
+
+while(!task.HasCompleted())
+{
+    StdOutThreadSafe("Waiting for task to complete...");
+    sleep(1);
+}
+```
+
+Tasks can be paused, resumed and stopped and also a progress towards completion can be set.
+
+Apart from instantiating tasks manually, a thread pool can be used:
+
+```C++
+// Create a pool with 8 worker threads
+TinyTasksPool tinyTasksPool(8);
+
+uint16_t taskID = tinyTasksPool.CreateTask();
+
+TinyTasksPool::Result result1 = tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
+
+// Get the task
+TinyTask* task  = tinyTasksPool.GetTask(taskID);
+
+// Wait until the task completes
+while(!task->HasCompleted()) {}
+
+// Do something else ...
+```
+
+In order to support the functionality of pausing, resuming, stopping and progress, some function calls have to be made in the task lambda. The following example writes random numbers to a txt file, and it allows pausing, stopping and reporting progress by using `IsStopping()`, `HasStopped()`, `PauseIfNeeded()` and `SetProgress()`.
+
+```C++
+TinyTasksPool::Result lambdaResult = tinyTasksPool.SetNewLambdaForTask(taskID, [task]
+{
+    std::string filename;
+    clock_t timeNow = clock();
+    filename.append(std::to_string(timeNow) + ".txt\n");
+                    
+    std::FILE* fileToWrite = fopen(filename.c_str(), "w");
+    
+    const unsigned int maxIterations = 300;
+    for(unsigned int value = 0; value < maxIterations; ++value)
+    {
+        if(task->IsStopping() || task->HasStopped()) break;
+        const float randomNumber = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        std::string stringToWrite;
+        stringToWrite.append(std::to_string(randomNumber) + " ");
+        fwrite(stringToWrite.c_str(), sizeof(char), stringToWrite.size(), fileToWrite);
+        task->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        task->PauseIfNeeded();
+    }
+    
+    fclose(fileToWrite);
+});
+```
+
+Please consult `test/tests.cpp` and `src\example.cpp` for detailed use cases.

@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
                 {
                     taskTypeIDs.push_back(1);
                     
-                    lambdaResult =tasksPool.SetNewLambdaForTask(taskID, [currentTask]
+                    lambdaResult = tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         std::string filename;
                         clock_t timeNow = clock();

@@ -194,7 +194,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
     
-    uint32_t taskID = m_tinyTasksPool.CreateTask();
+    uint16_t taskID = m_tinyTasksPool.CreateTask();
     ASSERT_EQ(taskID, 0);
     
     TinyTasksPool::Result result1 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
@@ -205,7 +205,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewTaskInTinyTasksPool)
     while(!task->HasCompleted()) {}
     ASSERT_TRUE(task->HasCompleted());
     
-    uint32_t taskID2 = m_tinyTasksPool.CreateTask();
+    uint16_t taskID2 = m_tinyTasksPool.CreateTask();
     ASSERT_EQ(taskID2, 1);
     
     TinyTasksPool::Result result2 = m_tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
@@ -242,7 +242,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
     
-    uint32_t taskID = m_tinyTasksPool.CreateTask();
+    uint16_t taskID = m_tinyTasksPool.CreateTask();
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task);
                                                  
@@ -269,7 +269,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
 {
     ASSERT_EQ(m_tinyTasksPool.GetNumThreads(), 8);
     
-    uint32_t taskID = m_tinyTasksPool.CreateTask();
+    uint16_t taskID = m_tinyTasksPool.CreateTask();
     TinyTask* task  = m_tinyTasksPool.GetTask(taskID);
     ASSERT_TRUE(task);
     
