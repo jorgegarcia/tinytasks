@@ -90,7 +90,7 @@ static Command ParseInput(const char* input)
     else if(strcmp(elems[0].c_str(), "resume") == 0)
     {
         if(elems.size() == 2)
-            command.commandType = Command::PAUSE_TASK_ID;
+            command.commandType = Command::RESUME_TASK_ID;
     }
     else if(strcmp(elems[0].c_str(), "stop") == 0)
     {
@@ -263,22 +263,45 @@ int main(int argc, char* argv[])
             case Command::PAUSE_TASK_ID:
             {
                 assert(task);
+                if(task->IsStopping() || task->HasStopped() || task->IsPaused())
+                {
+                    std::cout << "Can't pause task, because it's stopped or already paused\n\n";
+                    break;
+                }
+                
                 task->Pause();
                 while(!task->IsPaused()) {}
+                std::cout << "Task ID " << std::to_string(task->GetID()) << " has paused\n\n";
                 break;
             }
             case Command::RESUME_TASK_ID:
             {
                 assert(task);
+                if(task->IsStopping() || task->HasStopped() || task->IsRunning())
+                {
+                    std::cout << "Can't resume task, because it's stopped or already running\n\n";
+                    break;
+                }
+                
                 task->Resume();
                 while(!task->IsRunning()) {}
+                std::cout << "Task ID " << std::to_string(task->GetID()) << " has resumed\n\n";
                 break;
             }
             case Command::STOP_TASK_ID:
             {
                 assert(task);
+                if(task->IsStopping() || task->HasStopped())
+                {
+                    std::cout << "Task is already stopped\n\n";
+                    break;
+                }
+                
+                if(task->IsPaused()) task->Resume();
+                while(!task->IsRunning()) {}
                 task->Stop();
                 while(task->IsStopping() || !task->HasStopped()) {}
+                std::cout << "Task ID " << std::to_string(task->GetID()) << " has stopped\n\n";
                 break;
             }
             case Command::STATUS:
@@ -289,7 +312,8 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    std::cout << std::left << std::setw(10) << "[Task ID]" << std::setw(11) << "[Status]" << std::setw(8) << "[Progress]\n";
+                    std::cout << std::left << std::setw(10) << "[Task ID]" << std::setw(11) << "[Status]"
+                              << std::setw(8) << "[Progress]\n";
                     
                     for(unsigned int taskIndex = 0; taskIndex < taskIDs.size(); ++taskIndex)
                     {
@@ -319,8 +343,8 @@ int main(int argc, char* argv[])
                         std::string progress(std::to_string(currentTask->GetProgress()));
                         progress.resize(5);
                         
-                        std::cout << std::left << std::setw(10) << currentTask->GetID() << std::setw(11) << statusString
-                        << std::setw(8) << progress + " %\n";
+                        std::cout << std::left << std::setw(10) << currentTask->GetID() << std::setw(11)
+                                  << statusString << std::setw(8) << progress + " %\n";
                     }
                     std::cout << "\n";
                 }
@@ -353,7 +377,8 @@ int main(int argc, char* argv[])
                 std::string progress(std::to_string(task->GetProgress()));
                 progress.resize(5);
                 
-                std::cout << "Task ID " << std::to_string(task->GetID()) << " is " + statusString + " at progress " + progress + " %" << "\n\n";
+                std::cout << "Task ID " << std::to_string(task->GetID())
+                          << " is " + statusString + " at progress " + progress + " %" << "\n\n";
                 break;
             }
             case Command::UNRECOGNISED:
