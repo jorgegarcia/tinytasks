@@ -5,7 +5,7 @@ Released under MIT license
 
 ## Build instructions
 
-In order to build the tests and example with cmake, type the following commands from the the repository directory in the terminal:
+The tests use Google Test, which is downloaded and compiled as part of the build process. In order to build the tests and the example with cmake, type the following commands from the the repository directory in the terminal:
 
 ```shell
 	$mkdir build
@@ -14,16 +14,16 @@ In order to build the tests and example with cmake, type the following commands 
 	$make
 ```
 
-This will generate in the folder build/bin/ the corresponding binaries. 
+This will generate in the folder `build/bin/` the corresponding binaries. 
 
-To run the tests (from the bin/ directory):
+To run the tests:
 
 ```shell
 	$cd bin
 	$./tests
 ```
 
-To see the allowed commands for the example program, please enter:
+To see the allowed commands for the example program:
 
 ```shell
 $cd bin
@@ -34,7 +34,7 @@ $./example --help
 
 The library has two classes:
 
-* <b>TinyTask</b> is the minimal unit that represents a task that is asynchronous. It doesn't know much of threads, as it only holds the state and the `Run()` function for the thread, as well as a lambda that is configurable.
+* <b>TinyTask</b> is the minimal unit that represents an asynchronous task. It doesn't know much of threads, as it only holds the state and the `Run()` function for the thread, as well as a lambda that is configurable.
 * <b>TinyTasksPool</b> is a thread pool that can handle and manage asynchronous tasks. It holds a finite number of worker threads, and it can queue tasks when the number of tasks is above the number of available threads. So for instance, if the pool has 8 threads and all are busy, if a new task is created it will be added to the waiting queue.
 
 The tests and the examples are self-explanatory for how to use the API, but the minimal steps for using it are described below.
@@ -55,7 +55,7 @@ TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, 1);
 task.Run();
 ```
 
-Another example, it waits for task completion:
+This is another example. It waits for task completion:
 
 ```C++
 TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT16_MAX);
@@ -63,12 +63,12 @@ std::thread taskThread(&TinyTask::Run, &task);
 
 while(!task.HasCompleted())
 {
-    StdOutThreadSafe("Waiting for task to complete...");
+    std::cout << "Waiting for task to complete...\n";
     sleep(1);
 }
 ```
 
-Tasks can be paused, resumed and stopped and also a progress towards completion can be set.
+Tasks can be paused, resumed and stopped. Also, a progress towards completion can be set.
 
 Apart from instantiating tasks manually, a thread pool can be used:
 
@@ -78,7 +78,7 @@ TinyTasksPool tinyTasksPool(8);
 
 uint16_t taskID = tinyTasksPool.CreateTask();
 
-TinyTasksPool::Result result1 = tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
+TinyTasksPool::Result result = tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
 
 // Get the task
 TinyTask* task  = tinyTasksPool.GetTask(taskID);
@@ -89,7 +89,7 @@ while(!task->HasCompleted()) {}
 // Do something else ...
 ```
 
-In order to support the functionality of pausing, resuming, stopping and progress, some function calls have to be made in the task lambda. The following example writes random numbers to a txt file, and it allows pausing, stopping and reporting progress by using `IsStopping()`, `HasStopped()`, `PauseIfNeeded()` and `SetProgress()`.
+In order to support the functionality of pausing, resuming, stopping and progress reporting, some function calls have to be made in the task lambda. The following example writes random numbers to a txt file, by using `IsStopping()`, `HasStopped()`, `PauseIfNeeded()` and `SetProgress()` task functions.
 
 ```C++
 TinyTasksPool::Result lambdaResult = tinyTasksPool.SetNewLambdaForTask(taskID, [task]
