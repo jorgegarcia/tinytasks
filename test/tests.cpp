@@ -230,7 +230,11 @@ TEST_F(TinyTasksPoolTest, TestCreateManyTasksInTinyTasksPool)
         {
             StdOutThreadSafe("Running Task ID: " + std::to_string(currentTaskID));
         });
-        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+        
+        if(currentTaskID >= m_tinyTasksPool.GetNumThreads())
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
+        else
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     }
 }
 
@@ -311,7 +315,11 @@ TEST_F(TinyTasksPoolTest, TestRunPendingTasksInTinyTasksPool)
         {
             StdOutThreadSafe("Running Task ID: " + std::to_string(currentTaskID));
         });
-        ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
+
+        if(currentTaskID >= m_tinyTasksPool.GetNumThreads())
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
+        else
+            ASSERT_EQ(result, TinyTasksPool::Result::SUCCEDED);
     }
     
     ASSERT_EQ(m_tinyTasksPool.GetNumPendingTasks(), numQueuedTasks);
