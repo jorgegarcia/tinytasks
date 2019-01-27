@@ -18,7 +18,7 @@ TEST(TinyTasksTest, TestLibVersionNumber)
 
 TEST(TinyTasksTest, TestCreateTinyTask)
 {
-    TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, UINT32_MAX);
+    TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, UINT16_MAX);
     task.Run();
     
     ASSERT_EQ(task.GetID(), UINT16_MAX);
@@ -27,7 +27,7 @@ TEST(TinyTasksTest, TestCreateTinyTask)
 
 TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
 {
-    TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT32_MAX);
+    TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT16_MAX);
     std::thread taskThread(&TinyTask::Run, &task);
     
     while(!task.HasCompleted())
@@ -54,7 +54,7 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
             --counter;
             task.PauseIfNeeded();
         }
-    }, UINT32_MAX);
+    }, UINT16_MAX);
     
     std::thread taskThread(&TinyTask::Run, &task);
     
