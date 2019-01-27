@@ -206,10 +206,11 @@ int main(int argc, char* argv[])
                 uint16_t taskID = tasksPool.CreateTask();
                 taskIDs.push_back(taskID);
                 TinyTask* currentTask = tasksPool.GetTask(taskID);
+                TinyTasksPool::Result lambdaResult = TinyTasksPool::Result::TASK_NOT_FOUND;
                 
                 if(command.value == 1)
                 {
-                    tasksPool.SetNewLambdaForTask(taskID, [currentTask]
+                    lambdaResult =tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         std::string filename;
                         clock_t timeNow = clock();
@@ -235,7 +236,7 @@ int main(int argc, char* argv[])
                 }
                 else if(command.value == 2)
                 {
-                    tasksPool.SetNewLambdaForTask(taskID, [currentTask]
+                    lambdaResult = tasksPool.SetNewLambdaForTask(taskID, [currentTask]
                     {
                         const unsigned int maxIterations = 300;
                         for(unsigned int value = 0; value < maxIterations; ++value)
@@ -254,8 +255,10 @@ int main(int argc, char* argv[])
                     std::cout << "Task type not recognised. Only values 1 and 2 are allowed\n\n";
                 }
                 
-                //Wait until task starts running
-                while(!currentTask->IsRunning()) {}
+                assert(lambdaResult == TinyTasksPool::Result::SUCCEDED || lambdaResult == TinyTasksPool::Result::SUCCEEDED_AT_QUEUE);
+                
+                //Wait until task starts running (if it's not queued)
+                while(!currentTask->IsRunning() && lambdaResult != TinyTasksPool::Result::SUCCEEDED_AT_QUEUE) {}
                 
                 std::cout << "Created task of type " << std::to_string(command.value) << " and ID " << std::to_string(taskID) << "\n\n";
                 break;

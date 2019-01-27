@@ -148,6 +148,7 @@ public:
     enum Result
     {
         SUCCEDED,
+        SUCCEEDED_AT_QUEUE,
         TASK_NOT_FOUND,
     };
     
@@ -229,7 +230,7 @@ public:
         if(task->second)
         {
             task->second->SetLambda(newLambda);
-            return Result::SUCCEDED;
+            return Result::SUCCEEDED_AT_QUEUE;
         }
     
         return Result::TASK_NOT_FOUND;
