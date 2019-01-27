@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
         }
     }
     
-    //Stop runnig tasks before closing
+    //Stop runing tasks before closing
     for(unsigned int taskIndex = 0; taskIndex < taskIDs.size(); ++taskIndex)
     {
         TinyTask* currentTask = tasksPool.GetTask(taskIDs[taskIndex]);
