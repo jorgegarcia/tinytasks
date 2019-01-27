@@ -7,10 +7,10 @@ Simple and single-header tasks library in C++11
 The tests use Google Test, which is downloaded and compiled as part of the build process. In order to build the tests and the example with cmake, type the following commands from the the repository directory in the terminal:
 
 ```shell
-	$mkdir build
-	$cd build
-	$cmake ..
-	$make
+$mkdir build
+$cd build
+$cmake ..
+$make
 ```
 
 This will generate in the folder `build/bin/` the corresponding binaries. 
@@ -18,8 +18,8 @@ This will generate in the folder `build/bin/` the corresponding binaries.
 To run the tests:
 
 ```shell
-	$cd bin
-	$./tests
+$cd bin
+$./tests
 ```
 
 To see the allowed commands for the example program:
@@ -33,8 +33,8 @@ $./example --help
 
 The library has two classes:
 
-* <b>TinyTask</b> is the minimal unit that represents an asynchronous task. It doesn't know much of threads, as it only holds the state and the `Run()` function for the thread, as well as a lambda that is configurable.
-* <b>TinyTasksPool</b> is a thread pool that can handle and manage asynchronous tasks. It holds a finite number of worker threads, and it can queue tasks when the number of tasks is above the number of available threads. So for instance, if the pool has 8 threads and all are busy, if a new task is created it will be added to the waiting queue.
+* `TinyTask` is the minimal unit that represents an asynchronous task. It doesn't know much of threads, as it only holds the state and the `Run()` function for the thread, as well as a lambda that is configurable.
+* `TinyTasksPool` is a thread pool that can handle and manage asynchronous tasks. It holds a finite number of worker threads, and it can queue tasks when the number of tasks is above the number of available threads. So for instance, if the pool has 8 threads and all are busy, if a new task is created it will be added to the waiting queue.
 
 The tests and the examples are self-explanatory for how to use the API, but the minimal steps for using it are described below.
 
@@ -42,13 +42,13 @@ First, you need to include the header from the `include/` directory.
 
 ```C++
 #include "tinytasks.h"
-
-using namespace tinytasks;
 ```
 
 Then you can start instantiating objects:
 
 ```C++
+using namespace tinytasks;
+
 // Create a tiny task with ID 1 and run it synchronously
 TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, 1);
 task.Run();
