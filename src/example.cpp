@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cstdio>
 #include <ctime>
+#include <cctype>
 #include <algorithm>
 #include <sstream>
 #include "../include/tinytasks.h"
@@ -10,7 +11,7 @@ using namespace tinytasks;
 
 void PrintHelp()
 {
-    std::cout << "\nTinyTasks v" << std::string(tinytasks_lib_version()) << " example | Usage and allowed commands\n\n";
+    std::cout << "\nTinyTasks v" << tinytasks_lib_version() << " example | Usage and allowed commands\n\n";
 
     std::cout << "start <task_type_id>: starts a task of type 1 or 2\n";
     std::cout << "\t1: writes random numbers to a .txt file during 1 minute (if not paused)\n";
@@ -229,7 +230,7 @@ int main(int argc, char* argv[])
                         (void)randomNumber;
                         currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                        currentTask->PauseIfNeeded();
+                        currentTask->PauseIfNeeded(100);
                     }
                 });
                 
@@ -259,7 +260,7 @@ int main(int argc, char* argv[])
                     {
                         std::string filename;
                         clock_t timeNow = clock();
-                        filename.append(std::to_string(timeNow) + ".txt\n");
+                        filename.append(std::to_string(timeNow) + ".txt");
                                         
                         std::FILE* fileToWrite = fopen(filename.c_str(), "w");
                         
@@ -273,7 +274,7 @@ int main(int argc, char* argv[])
                             fwrite(stringToWrite.c_str(), sizeof(char), stringToWrite.size(), fileToWrite);
                             currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                            currentTask->PauseIfNeeded();
+                            currentTask->PauseIfNeeded(100);
                         }
                         
                         fclose(fileToWrite);
@@ -293,7 +294,7 @@ int main(int argc, char* argv[])
                             (void)randomNumber;
                             currentTask->SetProgress(static_cast<float>(value + 1) / static_cast<float>(maxIterations) * 100.0f);
                             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                            currentTask->PauseIfNeeded();
+                            currentTask->PauseIfNeeded(100);
                         }
                     });
                 }

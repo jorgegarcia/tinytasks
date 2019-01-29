@@ -60,7 +60,7 @@ namespace constants
 }
 
 //! @brief Gets the current library version
-static const char* tinytasks_lib_version()
+static std::string tinytasks_lib_version()
 {
     std::string version;
 
@@ -68,7 +68,7 @@ static const char* tinytasks_lib_version()
                    std::to_string(TINYTASKS_VERSION_MINOR) + "." +
                    std::to_string(TINYTASKS_VERSION_PATCH));
     
-    return version.c_str();
+    return version;
 }
 
 //! @brief Base class for disabling copy & move constructors and operators
@@ -163,11 +163,11 @@ public:
     //! Sleeps the current thread if the task is paused
     //! @note This function should be called often in the task lambda
     //! in order to support pausing the task
-    void PauseIfNeeded() const
+    void PauseIfNeeded(const unsigned int milliseconds) const
     {
         while(IsPaused())
         {
-            std::this_thread::sleep_for(std::chrono::seconds{1});
+            std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
         }
     }
 
@@ -413,7 +413,7 @@ public:
     //! Gets the number of threads in the pool
     uint8_t     GetNumThreads()         const { return m_numThreads; }
     //! Gets the number of pending tasks that are queued in the pool
-    uint16_t    GetNumPendingTasks()    const { return m_pendingTasks.size(); }
+    uint16_t    GetNumPendingTasks()    const { return static_cast<uint16_t>(m_pendingTasks.size()); }
     
 private:
     //! Initialises the threads for the pool

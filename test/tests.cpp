@@ -13,7 +13,7 @@ void StdOutThreadSafe(const std::string& message)
 
 TEST(TinyTasksTest, TestLibVersionNumber)
 {
-    ASSERT_STREQ(tinytasks_lib_version(), "1.0.0");
+    ASSERT_STREQ(tinytasks_lib_version().c_str(), "1.0.0");
 }
 
 TEST(TinyTasksTest, TestCreateTinyTask)
@@ -27,7 +27,16 @@ TEST(TinyTasksTest, TestCreateTinyTask)
 
 TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
 {
-    TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT16_MAX);
+    TinyTask task([]
+    {
+        uint8_t counter = 0;
+        while(counter < 3)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            ++counter;
+        }
+    }, UINT16_MAX);
+    
     std::thread taskThread(&TinyTask::Run, &task);
     
     while(!task.HasCompleted())
@@ -43,7 +52,9 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
 
 TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
 {
-    TinyTask task([&task]
+    TinyTask task(UINT16_MAX);
+    
+    task.SetLambda([&task]
     {
         uint8_t counter = 5;
         
@@ -52,16 +63,16 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
             StdOutThreadSafe("Task count down: " + std::to_string(counter));
             std::this_thread::sleep_for(std::chrono::seconds(1));
             --counter;
-            task.PauseIfNeeded();
+            task.PauseIfNeeded(100);
         }
-    }, UINT16_MAX);
+    });
     
     std::thread taskThread(&TinyTask::Run, &task);
     
-    sleep(2);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     task.Pause();
     StdOutThreadSafe("Task paused!");
-    sleep(2);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     task.Resume();
     
     taskThread.join();
@@ -71,7 +82,9 @@ TEST(TinyTasksTest, TestCreateAndPauseTinyTaskInThread)
 
 TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
 {
-    TinyTask task([&task]
+    TinyTask task(UINT16_MAX);
+    
+    task.SetLambda([&task]
     {
         uint8_t counter = 5;
         
@@ -81,11 +94,11 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
             std::this_thread::sleep_for(std::chrono::seconds(1));
             --counter;
         }
-    }, UINT16_MAX);
+    });
     
     std::thread taskThread(&TinyTask::Run, &task);
     
-    sleep(3);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     task.Stop();
     while(!task.HasStopped()) {}
     StdOutThreadSafe("Task stopped!");
@@ -97,7 +110,9 @@ TEST(TinyTasksTest, TestCreateAndCancelTinyTaskInThread)
 
 TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
 {
-    TinyTask task([&task]
+    TinyTask task(UINT16_MAX);
+    
+    task.SetLambda([&task]
     {
         uint8_t counter = 5;
         
@@ -106,13 +121,13 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
             StdOutThreadSafe("Task count down: " + std::to_string(counter));
             std::this_thread::sleep_for(std::chrono::seconds(1));
             --counter;
-            task.PauseIfNeeded();
+            task.PauseIfNeeded(100);
         }
-    }, UINT16_MAX);
+    });
     
     std::thread taskThread(&TinyTask::Run, &task);
     
-    sleep(3);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     task.Pause();
     StdOutThreadSafe("Task paused!");
     task.Stop();
@@ -126,7 +141,9 @@ TEST(TinyTasksTest, TestCreateAndCancelWhileTinyTaskPausedInThread)
 
 TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
 {
-    TinyTask task([&task]
+    TinyTask task(UINT16_MAX);
+    
+    task.SetLambda([&task]
     {
         uint8_t counter = 0;
         uint8_t maxCount = 5;
@@ -137,7 +154,7 @@ TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
             std::this_thread::sleep_for(std::chrono::seconds(1));
             ++counter;
         }
-    }, UINT16_MAX);
+    });
     
     std::thread taskThread(&TinyTask::Run, &task);
     
@@ -146,7 +163,7 @@ TEST(TinyTasksTest, TestCreateAndQueryTinyTaskProgressInThread)
         std::string progress(std::to_string(task.GetProgress()));
         progress.resize(4);
         StdOutThreadSafe("Task progress: " + progress + " %");
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     
     taskThread.join();
@@ -257,7 +274,7 @@ TEST_F(TinyTasksPoolTest, TestCreateNewStopTaskInTinyTasksPool)
     
     ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     
-    sleep(3);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     task->Stop();
     while(!task->HasStopped()) {}
     StdOutThreadSafe("Task stopped!");
@@ -279,19 +296,19 @@ TEST_F(TinyTasksPoolTest, TestCreateNewPauseResumeTaskInTinyTasksPool)
         {
             StdOutThreadSafe("Running task from pool..");
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            task->PauseIfNeeded();
+            task->PauseIfNeeded(100);
         }
     });
     
     ASSERT_EQ(result, TinyTasksPool::Result::SUCCEEDED);
     
-    sleep(3);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     task->Pause();
     StdOutThreadSafe("Task paused...");
-    sleep(2);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     task->Resume();
     StdOutThreadSafe("Task resumed...");
-    sleep(3);
+    std::this_thread::sleep_for(std::chrono::seconds(3));
     task->Stop();
     while(!task->HasStopped()) {}
     
