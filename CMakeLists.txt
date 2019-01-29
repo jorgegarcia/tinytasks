@@ -34,9 +34,12 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
+find_package(Threads)
+
 # Add tests and compile runner application
 add_executable(tests test/tests.cpp include/tinytasks.h)
-target_link_libraries(tests gtest_main)
+target_link_libraries(tests gtest_main ${CMAKE_THREAD_LIBS_INIT})
 
 # Compile example
 add_executable(example src/example.cpp include/tinytasks.h)
+target_link_libraries(example ${CMAKE_THREAD_LIBS_INIT})

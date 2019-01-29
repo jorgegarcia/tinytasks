@@ -43,6 +43,8 @@
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <functional>
+#include <string.h>
 
 #define TINYTASKS_VERSION_MAJOR 1
 #define TINYTASKS_VERSION_MINOR 0
