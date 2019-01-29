@@ -68,13 +68,13 @@ task.Run();
 This is another example. It waits for task completion:
 
 ```C++
-TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { sleep(1); ++counter; } }, UINT16_MAX);
+TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { std::this_thread::sleep_for(std::chrono::seconds(1)); ++counter; } }, UINT16_MAX);
 std::thread taskThread(&TinyTask::Run, &task);
 
 while(!task.HasCompleted())
 {
     std::cout << "Waiting for task to complete...\n";
-    sleep(1);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 ```
 
