@@ -314,9 +314,9 @@ int main(int argc, char* argv[])
             case Command::PAUSE_TASK_ID:
             {
                 assert(task);
-                if(task->IsStopping() || task->HasStopped() || task->IsPaused())
+                if(task->IsStopping() || task->HasStopped() || task->IsPaused() || task->HasCompleted())
                 {
-                    std::cout << "Can't pause task, because it's stopped or already paused\n\n";
+                    std::cout << "Can't pause task, because it's stopped, has completed or already paused\n\n";
                     break;
                 }
                 
@@ -328,31 +328,46 @@ int main(int argc, char* argv[])
             case Command::RESUME_TASK_ID:
             {
                 assert(task);
-                if(task->IsStopping() || task->HasStopped() || task->IsRunning())
+                if(task->IsStopping() || task->HasStopped() || task->IsRunning() || task->HasCompleted())
                 {
-                    std::cout << "Can't resume task, because it's stopped or already running\n\n";
+                    std::cout << "Can't resume task, because it's stopped, has completed or already running\n\n";
                     break;
                 }
                 
-                task->Resume();
-                while(!task->IsRunning()) {}
-                std::cout << "Task ID " << std::to_string(task->GetID()) << " has resumed\n\n";
+                if(task->GetProgress() > 0.0f)
+                {
+                    task->Resume();
+                    while(!task->IsRunning()) {}
+                    std::cout << "Task ID " << std::to_string(task->GetID()) << " has resumed\n\n";
+                }
+                else
+                {
+                    std::cout << "Can't resume the task as it hasn't started yet (it's a pending task)\n\n";
+                }
+                
                 break;
             }
             case Command::STOP_TASK_ID:
             {
                 assert(task);
-                if(task->IsStopping() || task->HasStopped())
+                if(task->IsStopping() || task->HasStopped() || task->HasCompleted())
                 {
-                    std::cout << "Task is already stopped\n\n";
+                    std::cout << "Task is already stopped or has completed\n\n";
                     break;
                 }
                 
-                if(task->IsPaused()) task->Resume();
-                while(!task->IsRunning()) {}
-                task->Stop();
-                while(task->IsStopping() || !task->HasStopped()) {}
-                std::cout << "Task ID " << std::to_string(task->GetID()) << " has stopped\n\n";
+                if(task->GetProgress() > 0.0f)
+                {
+                    if(task->IsPaused()) task->Resume();
+                    while(!task->IsRunning()) {}
+                    task->Stop();
+                    while(task->IsStopping() || !task->HasStopped()) {}
+                    std::cout << "Task ID " << std::to_string(task->GetID()) << " has stopped\n\n";
+                }
+                else
+                {
+                    std::cout << "Can't stop the task as it hasn't started yet (it's a pending task)\n\n";
+                }
                 break;
             }
             case Command::STATUS:
