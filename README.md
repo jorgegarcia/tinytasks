@@ -37,6 +37,8 @@ cd build
 cmake ..
 ```
 
+Build tested on Visual Studio 2017 (Windows 10), clang 8.0 (OSX El Capitan) and gcc 7.3.0 (Ubuntu 18.04.1).
+
 
 ## How to use the library
 
