@@ -42,7 +42,7 @@ TEST(TinyTasksTest, TestCreateTinyTaskAndRunInThread)
     while(!task.HasCompleted())
     {
         StdOutThreadSafe("Waiting for task to complete...");
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     
     ASSERT_EQ(task.GetID(), UINT16_MAX);
