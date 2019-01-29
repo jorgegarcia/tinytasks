@@ -4,7 +4,7 @@ Simple and single-header tasks library in C++11
 
 ## Build instructions
 
-The tests use Google Test, which is downloaded and compiled as part of the build process. In order to build the tests and the example with cmake, type the following commands from the the repository directory in the terminal:
+The tests use Google Test, which is downloaded and compiled as part of the build process. In order to build the tests and the example with cmake, type the following commands from the the repository directory in the terminal (OSX and Linux only):
 
 ```shell
 $mkdir build
@@ -28,6 +28,15 @@ To see the allowed commands for the example program:
 $cd bin
 $./example --help
 ```
+
+Alternatively, to build the Visual Studio solution on Windows from the command prompt:
+
+```shell
+md build
+cd build
+cmake ..
+```
+
 
 ## How to use the library
 
@@ -77,7 +86,7 @@ TinyTasksPool tinyTasksPool(8);
 
 uint16_t taskID = tinyTasksPool.CreateTask();
 
-TinyTasksPool::Result result = tinyTasksPool.SetNewLambdaForTask(taskID, []{ StdOutThreadSafe("Running task from pool.."); });
+TinyTasksPool::Result result = tinyTasksPool.SetNewLambdaForTask(taskID, []{ std::cout << "Running task from pool..\n"; });
 
 // Get the task
 TinyTask* task  = tinyTasksPool.GetTask(taskID);
@@ -116,7 +125,7 @@ TinyTasksPool::Result lambdaResult = tinyTasksPool.SetNewLambdaForTask(taskID, [
 });
 ```
 
-Please consult `test/tests.cpp` and `src\example.cpp` for detailed use cases.
+Please consult `test/tests.cpp` and `src/example.cpp` for detailed use cases.
 
 ## License
 
