@@ -1,4 +1,4 @@
-# TinyTasks 
+# tinytasks 
 
 Simple and single-header tasks library in C++11
 
@@ -15,21 +15,21 @@ $make
 
 This will generate in the folder `build/bin/` the corresponding binaries. 
 
-To run the tests:
+To run the tests please enter:
 
 ```shell
 $cd bin
 $./tests
 ```
 
-To see the allowed commands for the example program:
+To see the allowed commands for the example program you can similarly enter:
 
 ```shell
 $cd bin
 $./example --help
 ```
 
-Alternatively, to build the Visual Studio solution on Windows from the command prompt:
+Alternatively, to build the Visual Studio solution on Windows from the command prompt run:
 
 ```shell
 md build
