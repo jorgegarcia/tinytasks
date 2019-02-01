@@ -116,17 +116,19 @@ public:
     //! Initialize the task
     //! @param ID for the task
     TinyTask(const uint16_t id)
-            : m_status(Status::PAUSED), m_ID(id), m_progress(0.0f), m_isStopping(false)
+            : m_status(Status::PAUSED), m_lambda(nullptr), m_ID(id), m_progress(0.0f), m_isStopping(false)
     {
     }
 
     //! Destroys the task
     ~TinyTask() {}
 
-    //! Runs function for the task. This should be called by a thread
+    //! Run function for the task. This should be called by a thread
     void Run()
     {
         m_status = Status::RUNNING;
+
+        assert(m_lambda && "Task requires a valid (non-nullptr) lambda");
         m_lambda();
         
         if(IsStopping())
@@ -206,7 +208,7 @@ public:
     float GetProgress() const               { return m_progress; }
 
     //! Sets the lambda that is tied to the task (e.g. run from a thread)
-    void SetLambda(std::function<void()> newLambda) { m_lambda = std::move(newLambda); }
+    void SetLambda(std::function<void()> newLambda) { assert(newLambda); m_lambda = std::move(newLambda); }
 
 private:
     std::atomic<Status>     m_status;
