@@ -106,7 +106,7 @@ TinyTasksPool::Result lambdaResult = tinyTasksPool.SetNewLambdaForTask(taskID, [
 {
     std::string filename;
     clock_t timeNow = clock();
-    filename.append(std::to_string(timeNow) + ".txt\n");
+    filename.append(std::to_string(timeNow) + ".txt");
                     
     std::FILE* fileToWrite = fopen(filename.c_str(), "w");
     
