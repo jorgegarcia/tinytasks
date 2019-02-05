@@ -61,7 +61,7 @@ Then you can start instantiating objects:
 using namespace tinytasks;
 
 // Create a tiny task with ID 1 and run it synchronously
-TinyTask task([]{ StdOutThreadSafe("Running tiny task..."); }, 1);
+TinyTask task([]{ std::cout << "Running tiny task...\n"; }, 1);
 task.Run();
 ```
 
