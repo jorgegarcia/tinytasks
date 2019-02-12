@@ -61,14 +61,27 @@ Then you can start instantiating objects:
 using namespace tinytasks;
 
 // Create a tiny task with ID 1 and run it synchronously
-TinyTask task([]{ std::cout << "Running tiny task...\n"; }, 1);
+TinyTask task([]
+{
+    std::cout << "Running tiny task...\n"; 
+}, 1);
+
 task.Run();
 ```
 
 This is another example. It waits for task completion:
 
 ```C++
-TinyTask task([]{ uint8_t counter = 0; while(counter < 3) { std::this_thread::sleep_for(std::chrono::seconds(1)); ++counter; } }, UINT16_MAX);
+TinyTask task([]
+{
+    uint8_t counter = 0;
+    while(counter < 3) 
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        ++counter;
+    } 
+}, UINT16_MAX);
+
 std::thread taskThread(&TinyTask::Run, &task);
 
 while(!task.HasCompleted())
@@ -88,7 +101,10 @@ TinyTasksPool tinyTasksPool(8);
 
 uint16_t taskID = tinyTasksPool.CreateTask();
 
-TinyTasksPool::Result result = tinyTasksPool.SetNewLambdaForTask(taskID, []{ std::cout << "Running task from pool..\n"; });
+TinyTasksPool::Result result = tinyTasksPool.SetNewLambdaForTask(taskID, []
+{
+    std::cout << "Running task from pool..\n"; 
+});
 
 // Get the task
 TinyTask* task  = tinyTasksPool.GetTask(taskID);
